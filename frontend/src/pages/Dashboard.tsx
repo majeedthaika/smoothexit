@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Clock, CheckCircle, XCircle, Loader2, Trash2, Play } from 'lucide-react';
 import { Button, Card, CardContent, Badge } from '@/components/ui';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { migrationAPI } from '@/lib/api';
 import type { Migration } from '@/types/migration';
 import { formatDate, getStatusColor } from '@/lib/utils';
@@ -69,12 +70,15 @@ export function Dashboard() {
               Manage and monitor your data migrations
             </p>
           </div>
-          <Link to="/wizard">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              New Migration
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/wizard">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                New Migration
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}

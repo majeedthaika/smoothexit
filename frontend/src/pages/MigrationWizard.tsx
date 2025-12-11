@@ -1,5 +1,7 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   StepperProgress,
   SourceConfig,
@@ -69,11 +71,19 @@ export function MigrationWizard() {
     <div className="min-h-screen bg-[hsl(var(--background))]">
       <div className="mx-auto max-w-5xl px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold">New Migration</h1>
-          <p className="text-[hsl(var(--muted-foreground))]">
-            Configure and run a data migration between services
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">New Migration</h1>
+            <p className="text-[hsl(var(--muted-foreground))]">
+              Configure and run a data migration between services
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/">
+              <Button variant="outline">Back to Dashboard</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stepper */}
