@@ -3,15 +3,15 @@ import { Database, GitBranch, Play, ChevronLeft, ChevronRight } from 'lucide-rea
 import { Button } from '@/components/ui';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SchemaPanel } from '@/components/SchemaPanel';
+import { MigrateTab } from '@/components/MigrateTab';
 import { SchemaBuilder } from '@/components/SchemaBuilder';
 import { MappingEditor } from '@/components/wizard/MappingEditor';
-import { ExecuteMonitor } from '@/components/wizard/ExecuteMonitor';
 import { useMigrationStore } from '@/store/migration';
 
 const TABS = [
-  { id: 'schemas' as const, label: 'Schemas', icon: Database, description: 'Define source & target schemas' },
-  { id: 'mappings' as const, label: 'Mappings', icon: GitBranch, description: 'Configure field mappings' },
-  { id: 'execute' as const, label: 'Migrate', icon: Play, description: 'Run the migration' },
+  { id: 'migrate' as const, label: 'Migrate', icon: Play, description: 'Run a migration' },
+  { id: 'schemas' as const, label: 'Schemas', icon: Database, description: 'Manage schemas' },
+  { id: 'mappings' as const, label: 'Mappings', icon: GitBranch, description: 'Manage mappings' },
 ];
 
 export function MigrationWorkspace() {
@@ -19,12 +19,12 @@ export function MigrationWorkspace() {
 
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'migrate':
+        return <MigrateTab />;
       case 'schemas':
         return <SchemaBuilder />;
       case 'mappings':
         return <MappingEditor />;
-      case 'execute':
-        return <ExecuteMonitor />;
       default:
         return null;
     }

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import type { DataSource, EntityMapping, EntitySchema, ProgressEvent, ChatMessage } from '@/types/migration';
 
-type WorkspaceTab = 'schemas' | 'mappings' | 'execute';
+type WorkspaceTab = 'migrate' | 'schemas' | 'mappings';
 
 interface MigrationWorkspaceState {
   // Current tab
@@ -229,7 +229,7 @@ const seedEntityMappings: EntityMapping[] = [
 ];
 
 const initialState = {
-  activeTab: 'schemas' as WorkspaceTab,
+  activeTab: 'migrate' as WorkspaceTab,
   name: 'Stripe + Salesforce to Chargebee Migration',
   description: 'Migrate customer and subscription data from Stripe and contact data from Salesforce into Chargebee',
   sourceSchemas: seedSourceSchemas,
