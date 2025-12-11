@@ -1,0 +1,808 @@
+{
+  "name": "Chargebee",
+  "version": "v2",
+  "description": "Chargebee subscription billing platform schema",
+  "entities": {
+    "Customer": {
+      "description": "Represents a customer in Chargebee",
+      "api_endpoint": "/api/v2/customers",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the customer",
+          "required": true,
+          "max_length": 50,
+          "example": "cust_abc123"
+        },
+        "first_name": {
+          "type": "string",
+          "description": "Customer's first name",
+          "required": false,
+          "max_length": 150
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Customer's last name",
+          "required": false,
+          "max_length": 150
+        },
+        "email": {
+          "type": "string",
+          "description": "Customer's email address",
+          "required": false,
+          "max_length": 70
+        },
+        "phone": {
+          "type": "string",
+          "description": "Customer's phone number",
+          "required": false,
+          "max_length": 50
+        },
+        "company": {
+          "type": "string",
+          "description": "Company or business name",
+          "required": false,
+          "max_length": 250
+        },
+        "vat_number": {
+          "type": "string",
+          "description": "VAT/Tax identification number",
+          "required": false,
+          "max_length": 20
+        },
+        "auto_collection": {
+          "type": "string",
+          "description": "Whether payments are collected automatically",
+          "required": false,
+          "enum": ["on", "off"],
+          "default": "on"
+        },
+        "net_term_days": {
+          "type": "integer",
+          "description": "Number of days for payment terms",
+          "required": false,
+          "default": 0
+        },
+        "allow_direct_debit": {
+          "type": "boolean",
+          "description": "Whether direct debit is allowed",
+          "required": false,
+          "default": false
+        },
+        "created_at": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        },
+        "locale": {
+          "type": "string",
+          "description": "Locale for the customer",
+          "required": false,
+          "max_length": 50
+        },
+        "billing_address": {
+          "type": "object",
+          "description": "Customer's billing address",
+          "required": false,
+          "properties": {
+            "first_name": {"type": "string", "max_length": 150},
+            "last_name": {"type": "string", "max_length": 150},
+            "company": {"type": "string", "max_length": 250},
+            "line1": {"type": "string", "max_length": 150},
+            "line2": {"type": "string", "max_length": 150},
+            "line3": {"type": "string", "max_length": 150},
+            "city": {"type": "string", "max_length": 50},
+            "state_code": {"type": "string", "max_length": 50},
+            "state": {"type": "string", "max_length": 50},
+            "zip": {"type": "string", "max_length": 20},
+            "country": {"type": "string", "max_length": 50},
+            "phone": {"type": "string", "max_length": 50},
+            "email": {"type": "string", "max_length": 70}
+          }
+        },
+        "meta_data": {
+          "type": "object",
+          "description": "JSON metadata for additional info",
+          "required": false
+        },
+        "taxability": {
+          "type": "string",
+          "description": "Tax treatment for the customer",
+          "required": false,
+          "enum": ["taxable", "exempt"],
+          "default": "taxable"
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "Whether customer is deleted",
+          "required": false,
+          "default": false
+        },
+        "pii_cleared": {
+          "type": "string",
+          "description": "Status of PII clearing",
+          "required": false,
+          "enum": ["active", "scheduled_for_clear", "cleared"]
+        },
+        "promotional_credits": {
+          "type": "integer",
+          "description": "Promotional credits balance in cents",
+          "required": false,
+          "default": 0
+        },
+        "refundable_credits": {
+          "type": "integer",
+          "description": "Refundable credits balance in cents",
+          "required": false,
+          "default": 0
+        },
+        "excess_payments": {
+          "type": "integer",
+          "description": "Excess payments balance in cents",
+          "required": false,
+          "default": 0
+        },
+        "unbilled_charges": {
+          "type": "integer",
+          "description": "Unbilled charges in cents",
+          "required": false,
+          "default": 0
+        },
+        "preferred_currency_code": {
+          "type": "string",
+          "description": "Preferred currency code",
+          "required": false,
+          "max_length": 3
+        }
+      }
+    },
+    "Item": {
+      "description": "Represents a product in Chargebee Product Catalog 2.0",
+      "api_endpoint": "/api/v2/items",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the item",
+          "required": true,
+          "max_length": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the item",
+          "required": true,
+          "max_length": 50
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the item",
+          "required": false,
+          "max_length": 500
+        },
+        "external_name": {
+          "type": "string",
+          "description": "External display name",
+          "required": false,
+          "max_length": 100
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of item",
+          "required": true,
+          "enum": ["plan", "addon", "charge"]
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the item",
+          "required": false,
+          "enum": ["active", "archived", "deleted"],
+          "default": "active"
+        },
+        "item_family_id": {
+          "type": "string",
+          "description": "ID of the item family",
+          "required": true,
+          "max_length": 100
+        },
+        "enabled_for_checkout": {
+          "type": "boolean",
+          "description": "Whether available in checkout",
+          "required": false,
+          "default": true
+        },
+        "enabled_in_portal": {
+          "type": "boolean",
+          "description": "Whether visible in customer portal",
+          "required": false,
+          "default": true
+        },
+        "is_giftable": {
+          "type": "boolean",
+          "description": "Whether item can be gifted",
+          "required": false,
+          "default": false
+        },
+        "is_shippable": {
+          "type": "boolean",
+          "description": "Whether item requires shipping",
+          "required": false,
+          "default": false
+        },
+        "metered": {
+          "type": "boolean",
+          "description": "Whether usage is metered",
+          "required": false,
+          "default": false
+        },
+        "usage_calculation": {
+          "type": "string",
+          "description": "How usage is calculated",
+          "required": false,
+          "enum": ["sum_of_usages", "last_usage", "max_usage"]
+        },
+        "resource_version": {
+          "type": "integer",
+          "description": "Version number for concurrency",
+          "required": false
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        },
+        "meta_data": {
+          "type": "object",
+          "description": "JSON metadata",
+          "required": false
+        }
+      }
+    },
+    "ItemPrice": {
+      "description": "Represents pricing for an item",
+      "api_endpoint": "/api/v2/item_prices",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the item price",
+          "required": true,
+          "max_length": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the price",
+          "required": true,
+          "max_length": 50
+        },
+        "item_id": {
+          "type": "string",
+          "description": "ID of the associated item",
+          "required": true,
+          "max_length": 100
+        },
+        "item_type": {
+          "type": "string",
+          "description": "Type of item",
+          "required": true,
+          "enum": ["plan", "addon", "charge"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the price",
+          "required": false,
+          "max_length": 500
+        },
+        "external_name": {
+          "type": "string",
+          "description": "External display name",
+          "required": false,
+          "max_length": 100
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the item price",
+          "required": false,
+          "enum": ["active", "archived", "deleted"],
+          "default": "active"
+        },
+        "price": {
+          "type": "integer",
+          "description": "Price in cents",
+          "required": false
+        },
+        "pricing_model": {
+          "type": "string",
+          "description": "Pricing model used",
+          "required": true,
+          "enum": ["flat_fee", "per_unit", "tiered", "volume", "stairstep"]
+        },
+        "currency_code": {
+          "type": "string",
+          "description": "ISO currency code",
+          "required": true,
+          "max_length": 3
+        },
+        "period": {
+          "type": "integer",
+          "description": "Number of billing periods",
+          "required": false,
+          "default": 1
+        },
+        "period_unit": {
+          "type": "string",
+          "description": "Unit of billing period",
+          "required": false,
+          "enum": ["day", "week", "month", "year"]
+        },
+        "trial_period": {
+          "type": "integer",
+          "description": "Trial period length",
+          "required": false
+        },
+        "trial_period_unit": {
+          "type": "string",
+          "description": "Unit of trial period",
+          "required": false,
+          "enum": ["day", "month"]
+        },
+        "billing_cycles": {
+          "type": "integer",
+          "description": "Number of billing cycles",
+          "required": false
+        },
+        "free_quantity": {
+          "type": "integer",
+          "description": "Free quantity included",
+          "required": false,
+          "default": 0
+        },
+        "tiers": {
+          "type": "array",
+          "description": "Tiered pricing tiers",
+          "required": false,
+          "items": {
+            "type": "object",
+            "properties": {
+              "starting_unit": {"type": "integer"},
+              "ending_unit": {"type": "integer"},
+              "price": {"type": "integer"}
+            }
+          }
+        },
+        "resource_version": {
+          "type": "integer",
+          "description": "Version number",
+          "required": false
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        },
+        "created_at": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "meta_data": {
+          "type": "object",
+          "description": "JSON metadata",
+          "required": false
+        }
+      }
+    },
+    "ItemFamily": {
+      "description": "Represents a product family/category",
+      "api_endpoint": "/api/v2/item_families",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier",
+          "required": true,
+          "max_length": 100
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name",
+          "required": true,
+          "max_length": 50
+        },
+        "description": {
+          "type": "string",
+          "description": "Description",
+          "required": false,
+          "max_length": 500
+        },
+        "status": {
+          "type": "string",
+          "description": "Status",
+          "required": false,
+          "enum": ["active", "deleted"],
+          "default": "active"
+        },
+        "resource_version": {
+          "type": "integer",
+          "description": "Version number",
+          "required": false
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        }
+      }
+    },
+    "Subscription": {
+      "description": "Represents a subscription",
+      "api_endpoint": "/api/v2/subscriptions",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier",
+          "required": true,
+          "max_length": 50
+        },
+        "customer_id": {
+          "type": "string",
+          "description": "ID of the customer",
+          "required": true,
+          "max_length": 50
+        },
+        "status": {
+          "type": "string",
+          "description": "Current subscription status",
+          "required": true,
+          "enum": ["future", "in_trial", "active", "non_renewing", "paused", "cancelled"]
+        },
+        "current_term_start": {
+          "type": "integer",
+          "description": "Start of current billing term",
+          "required": false
+        },
+        "current_term_end": {
+          "type": "integer",
+          "description": "End of current billing term",
+          "required": false
+        },
+        "next_billing_at": {
+          "type": "integer",
+          "description": "Next billing timestamp",
+          "required": false
+        },
+        "created_at": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "started_at": {
+          "type": "integer",
+          "description": "When subscription started",
+          "required": false
+        },
+        "activated_at": {
+          "type": "integer",
+          "description": "When subscription was activated",
+          "required": false
+        },
+        "cancelled_at": {
+          "type": "integer",
+          "description": "When subscription was cancelled",
+          "required": false
+        },
+        "cancel_reason": {
+          "type": "string",
+          "description": "Reason for cancellation",
+          "required": false,
+          "enum": ["not_paid", "no_card", "fraud_review_failed", "non_compliant_eu_customer", "tax_calculation_failed", "currency_incompatible_with_gateway", "non_compliant_customer"]
+        },
+        "trial_start": {
+          "type": "integer",
+          "description": "Trial period start",
+          "required": false
+        },
+        "trial_end": {
+          "type": "integer",
+          "description": "Trial period end",
+          "required": false
+        },
+        "remaining_billing_cycles": {
+          "type": "integer",
+          "description": "Remaining billing cycles",
+          "required": false
+        },
+        "po_number": {
+          "type": "string",
+          "description": "Purchase order number",
+          "required": false,
+          "max_length": 100
+        },
+        "auto_collection": {
+          "type": "string",
+          "description": "Auto-collection setting",
+          "required": false,
+          "enum": ["on", "off"]
+        },
+        "due_invoices_count": {
+          "type": "integer",
+          "description": "Count of due invoices",
+          "required": false
+        },
+        "mrr": {
+          "type": "integer",
+          "description": "Monthly recurring revenue in cents",
+          "required": false
+        },
+        "currency_code": {
+          "type": "string",
+          "description": "ISO currency code",
+          "required": true,
+          "max_length": 3
+        },
+        "subscription_items": {
+          "type": "array",
+          "description": "Items in the subscription",
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "item_price_id": {"type": "string", "required": true},
+              "item_type": {"type": "string", "enum": ["plan", "addon", "charge"]},
+              "quantity": {"type": "integer"},
+              "unit_price": {"type": "integer"},
+              "amount": {"type": "integer"},
+              "free_quantity": {"type": "integer"},
+              "trial_end": {"type": "integer"},
+              "billing_cycles": {"type": "integer"}
+            }
+          }
+        },
+        "shipping_address": {
+          "type": "object",
+          "description": "Shipping address",
+          "required": false,
+          "properties": {
+            "first_name": {"type": "string"},
+            "last_name": {"type": "string"},
+            "company": {"type": "string"},
+            "line1": {"type": "string"},
+            "line2": {"type": "string"},
+            "line3": {"type": "string"},
+            "city": {"type": "string"},
+            "state_code": {"type": "string"},
+            "state": {"type": "string"},
+            "zip": {"type": "string"},
+            "country": {"type": "string"},
+            "phone": {"type": "string"}
+          }
+        },
+        "meta_data": {
+          "type": "object",
+          "description": "JSON metadata",
+          "required": false
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "Whether subscription is deleted",
+          "required": false,
+          "default": false
+        },
+        "resource_version": {
+          "type": "integer",
+          "description": "Version number",
+          "required": false
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        }
+      }
+    },
+    "Invoice": {
+      "description": "Represents an invoice",
+      "api_endpoint": "/api/v2/invoices",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier",
+          "required": true,
+          "max_length": 50
+        },
+        "customer_id": {
+          "type": "string",
+          "description": "ID of the customer",
+          "required": true,
+          "max_length": 50
+        },
+        "subscription_id": {
+          "type": "string",
+          "description": "ID of the subscription",
+          "required": false,
+          "max_length": 50
+        },
+        "status": {
+          "type": "string",
+          "description": "Invoice status",
+          "required": true,
+          "enum": ["paid", "posted", "payment_due", "not_paid", "voided", "pending"]
+        },
+        "price_type": {
+          "type": "string",
+          "description": "Price type",
+          "required": true,
+          "enum": ["tax_exclusive", "tax_inclusive"]
+        },
+        "date": {
+          "type": "integer",
+          "description": "Invoice date",
+          "required": true
+        },
+        "due_date": {
+          "type": "integer",
+          "description": "Due date",
+          "required": false
+        },
+        "net_term_days": {
+          "type": "integer",
+          "description": "Payment term days",
+          "required": false,
+          "default": 0
+        },
+        "currency_code": {
+          "type": "string",
+          "description": "ISO currency code",
+          "required": true,
+          "max_length": 3
+        },
+        "total": {
+          "type": "integer",
+          "description": "Total amount in cents",
+          "required": true
+        },
+        "amount_paid": {
+          "type": "integer",
+          "description": "Amount paid in cents",
+          "required": false,
+          "default": 0
+        },
+        "amount_adjusted": {
+          "type": "integer",
+          "description": "Amount adjusted in cents",
+          "required": false,
+          "default": 0
+        },
+        "amount_due": {
+          "type": "integer",
+          "description": "Amount due in cents",
+          "required": false
+        },
+        "sub_total": {
+          "type": "integer",
+          "description": "Subtotal in cents",
+          "required": true
+        },
+        "tax": {
+          "type": "integer",
+          "description": "Tax amount in cents",
+          "required": false,
+          "default": 0
+        },
+        "line_items": {
+          "type": "array",
+          "description": "Invoice line items",
+          "required": true,
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {"type": "string"},
+              "date_from": {"type": "integer"},
+              "date_to": {"type": "integer"},
+              "unit_amount": {"type": "integer"},
+              "quantity": {"type": "integer"},
+              "amount": {"type": "integer"},
+              "description": {"type": "string"},
+              "entity_type": {"type": "string"},
+              "entity_id": {"type": "string"},
+              "is_taxed": {"type": "boolean"},
+              "tax_amount": {"type": "integer"}
+            }
+          }
+        },
+        "created_at": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "Whether invoice is deleted",
+          "required": false,
+          "default": false
+        }
+      }
+    },
+    "PaymentSource": {
+      "description": "Represents a customer's payment method",
+      "api_endpoint": "/api/v2/payment_sources",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier",
+          "required": true,
+          "max_length": 40
+        },
+        "customer_id": {
+          "type": "string",
+          "description": "ID of the customer",
+          "required": true,
+          "max_length": 50
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of payment source",
+          "required": true,
+          "enum": ["card", "paypal_express_checkout", "amazon_payments", "direct_debit", "generic", "alipay", "unionpay", "apple_pay", "wechat_pay", "ideal", "google_pay", "sofort", "bancontact", "giropay", "dotpay", "upi", "netbanking_emandates", "automated_bank_transfer", "klarna_pay_now", "online_banking_poland", "faster_payments", "sepa_instant_transfer", "venmo", "pay_to", "bank_transfer"]
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the payment source",
+          "required": true,
+          "enum": ["valid", "expiring", "expired", "invalid", "pending_verification"]
+        },
+        "gateway": {
+          "type": "string",
+          "description": "Payment gateway used",
+          "required": false
+        },
+        "gateway_account_id": {
+          "type": "string",
+          "description": "Gateway account ID",
+          "required": false
+        },
+        "reference_id": {
+          "type": "string",
+          "description": "Reference ID at gateway",
+          "required": false
+        },
+        "card": {
+          "type": "object",
+          "description": "Card details",
+          "required": false,
+          "properties": {
+            "first_name": {"type": "string"},
+            "last_name": {"type": "string"},
+            "brand": {"type": "string", "enum": ["visa", "mastercard", "american_express", "discover", "jcb", "diners_club", "other", "bancontact", "cartes_bancaires", "unionpay", "eftpos_australia", "not_applicable"]},
+            "last4": {"type": "string"},
+            "expiry_month": {"type": "integer"},
+            "expiry_year": {"type": "integer"},
+            "funding_type": {"type": "string", "enum": ["credit", "debit", "prepaid", "not_known", "not_applicable"]}
+          }
+        },
+        "created_at": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "updated_at": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": false
+        },
+        "deleted": {
+          "type": "boolean",
+          "description": "Whether payment source is deleted",
+          "required": false,
+          "default": false
+        }
+      }
+    }
+  }
+}

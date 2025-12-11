@@ -1,0 +1,643 @@
+{
+  "name": "Salesforce",
+  "version": "v59.0",
+  "description": "Salesforce CRM standard objects schema",
+  "entities": {
+    "Account": {
+      "description": "Represents an organization or person involved with your business",
+      "api_endpoint": "/services/data/v59.0/sobjects/Account",
+      "fields": {
+        "Id": {
+          "type": "string",
+          "description": "Unique Salesforce ID (18-character)",
+          "required": true,
+          "example": "001xx000003DIoXAAW"
+        },
+        "Name": {
+          "type": "string",
+          "description": "Account name",
+          "required": true,
+          "max_length": 255
+        },
+        "Type": {
+          "type": "string",
+          "description": "Account type",
+          "required": false,
+          "enum": ["Prospect", "Customer - Direct", "Customer - Channel", "Channel Partner / Reseller", "Installation Partner", "Technology Partner", "Other"]
+        },
+        "Industry": {
+          "type": "string",
+          "description": "Primary business industry",
+          "required": false
+        },
+        "AnnualRevenue": {
+          "type": "currency",
+          "description": "Annual revenue amount",
+          "required": false
+        },
+        "NumberOfEmployees": {
+          "type": "integer",
+          "description": "Number of employees",
+          "required": false
+        },
+        "Description": {
+          "type": "string",
+          "description": "Account description",
+          "required": false
+        },
+        "Phone": {
+          "type": "string",
+          "description": "Primary phone number",
+          "required": false,
+          "max_length": 40
+        },
+        "Fax": {
+          "type": "string",
+          "description": "Fax number",
+          "required": false,
+          "max_length": 40
+        },
+        "Website": {
+          "type": "string",
+          "description": "Company website URL",
+          "required": false,
+          "max_length": 255
+        },
+        "BillingStreet": {
+          "type": "string",
+          "description": "Billing street address",
+          "required": false
+        },
+        "BillingCity": {
+          "type": "string",
+          "description": "Billing city",
+          "required": false,
+          "max_length": 40
+        },
+        "BillingState": {
+          "type": "string",
+          "description": "Billing state/province",
+          "required": false,
+          "max_length": 80
+        },
+        "BillingPostalCode": {
+          "type": "string",
+          "description": "Billing postal/ZIP code",
+          "required": false,
+          "max_length": 20
+        },
+        "BillingCountry": {
+          "type": "string",
+          "description": "Billing country",
+          "required": false,
+          "max_length": 80
+        },
+        "ShippingStreet": {
+          "type": "string",
+          "description": "Shipping street address",
+          "required": false
+        },
+        "ShippingCity": {
+          "type": "string",
+          "description": "Shipping city",
+          "required": false,
+          "max_length": 40
+        },
+        "ShippingState": {
+          "type": "string",
+          "description": "Shipping state/province",
+          "required": false,
+          "max_length": 80
+        },
+        "ShippingPostalCode": {
+          "type": "string",
+          "description": "Shipping postal/ZIP code",
+          "required": false,
+          "max_length": 20
+        },
+        "ShippingCountry": {
+          "type": "string",
+          "description": "Shipping country",
+          "required": false,
+          "max_length": 80
+        },
+        "OwnerId": {
+          "type": "string",
+          "description": "ID of account owner",
+          "required": false
+        },
+        "ParentId": {
+          "type": "string",
+          "description": "ID of parent account",
+          "required": false
+        },
+        "AccountNumber": {
+          "type": "string",
+          "description": "Account number",
+          "required": false,
+          "max_length": 40
+        },
+        "AccountSource": {
+          "type": "string",
+          "description": "Lead source",
+          "required": false
+        },
+        "CreatedDate": {
+          "type": "datetime",
+          "description": "Date and time created",
+          "required": true
+        },
+        "CreatedById": {
+          "type": "string",
+          "description": "ID of user who created",
+          "required": true
+        },
+        "LastModifiedDate": {
+          "type": "datetime",
+          "description": "Date and time last modified",
+          "required": true
+        },
+        "LastModifiedById": {
+          "type": "string",
+          "description": "ID of user who last modified",
+          "required": true
+        },
+        "IsDeleted": {
+          "type": "boolean",
+          "description": "Whether record is deleted",
+          "required": true,
+          "default": false
+        }
+      }
+    },
+    "Contact": {
+      "description": "Represents a person associated with an account",
+      "api_endpoint": "/services/data/v59.0/sobjects/Contact",
+      "fields": {
+        "Id": {
+          "type": "string",
+          "description": "Unique Salesforce ID (18-character)",
+          "required": true,
+          "example": "003xx000004TfqQAAS"
+        },
+        "AccountId": {
+          "type": "string",
+          "description": "ID of associated account",
+          "required": false
+        },
+        "FirstName": {
+          "type": "string",
+          "description": "Contact's first name",
+          "required": false,
+          "max_length": 40
+        },
+        "LastName": {
+          "type": "string",
+          "description": "Contact's last name",
+          "required": true,
+          "max_length": 80
+        },
+        "Name": {
+          "type": "string",
+          "description": "Full name (read-only, concatenated)",
+          "required": false
+        },
+        "Salutation": {
+          "type": "string",
+          "description": "Name prefix (Mr., Ms., etc.)",
+          "required": false
+        },
+        "Title": {
+          "type": "string",
+          "description": "Job title",
+          "required": false,
+          "max_length": 128
+        },
+        "Department": {
+          "type": "string",
+          "description": "Department name",
+          "required": false,
+          "max_length": 80
+        },
+        "Email": {
+          "type": "string",
+          "description": "Email address",
+          "required": false,
+          "max_length": 80
+        },
+        "Phone": {
+          "type": "string",
+          "description": "Phone number",
+          "required": false,
+          "max_length": 40
+        },
+        "MobilePhone": {
+          "type": "string",
+          "description": "Mobile phone number",
+          "required": false,
+          "max_length": 40
+        },
+        "HomePhone": {
+          "type": "string",
+          "description": "Home phone number",
+          "required": false,
+          "max_length": 40
+        },
+        "Fax": {
+          "type": "string",
+          "description": "Fax number",
+          "required": false,
+          "max_length": 40
+        },
+        "MailingStreet": {
+          "type": "string",
+          "description": "Mailing street address",
+          "required": false
+        },
+        "MailingCity": {
+          "type": "string",
+          "description": "Mailing city",
+          "required": false,
+          "max_length": 40
+        },
+        "MailingState": {
+          "type": "string",
+          "description": "Mailing state/province",
+          "required": false,
+          "max_length": 80
+        },
+        "MailingPostalCode": {
+          "type": "string",
+          "description": "Mailing postal/ZIP code",
+          "required": false,
+          "max_length": 20
+        },
+        "MailingCountry": {
+          "type": "string",
+          "description": "Mailing country",
+          "required": false,
+          "max_length": 80
+        },
+        "OtherStreet": {
+          "type": "string",
+          "description": "Other street address",
+          "required": false
+        },
+        "OtherCity": {
+          "type": "string",
+          "description": "Other city",
+          "required": false,
+          "max_length": 40
+        },
+        "OtherState": {
+          "type": "string",
+          "description": "Other state/province",
+          "required": false,
+          "max_length": 80
+        },
+        "OtherPostalCode": {
+          "type": "string",
+          "description": "Other postal/ZIP code",
+          "required": false,
+          "max_length": 20
+        },
+        "OtherCountry": {
+          "type": "string",
+          "description": "Other country",
+          "required": false,
+          "max_length": 80
+        },
+        "Birthdate": {
+          "type": "date",
+          "description": "Birth date",
+          "required": false
+        },
+        "Description": {
+          "type": "string",
+          "description": "Contact description",
+          "required": false
+        },
+        "LeadSource": {
+          "type": "string",
+          "description": "Source of contact",
+          "required": false
+        },
+        "OwnerId": {
+          "type": "string",
+          "description": "ID of contact owner",
+          "required": false
+        },
+        "ReportsToId": {
+          "type": "string",
+          "description": "ID of manager contact",
+          "required": false
+        },
+        "HasOptedOutOfEmail": {
+          "type": "boolean",
+          "description": "Whether opted out of email",
+          "required": false,
+          "default": false
+        },
+        "DoNotCall": {
+          "type": "boolean",
+          "description": "Whether to exclude from calls",
+          "required": false,
+          "default": false
+        },
+        "CreatedDate": {
+          "type": "datetime",
+          "description": "Date and time created",
+          "required": true
+        },
+        "CreatedById": {
+          "type": "string",
+          "description": "ID of user who created",
+          "required": true
+        },
+        "LastModifiedDate": {
+          "type": "datetime",
+          "description": "Date and time last modified",
+          "required": true
+        },
+        "LastModifiedById": {
+          "type": "string",
+          "description": "ID of user who last modified",
+          "required": true
+        },
+        "IsDeleted": {
+          "type": "boolean",
+          "description": "Whether record is deleted",
+          "required": true,
+          "default": false
+        }
+      }
+    },
+    "Opportunity": {
+      "description": "Represents an opportunity (potential revenue)",
+      "api_endpoint": "/services/data/v59.0/sobjects/Opportunity",
+      "fields": {
+        "Id": {
+          "type": "string",
+          "description": "Unique Salesforce ID",
+          "required": true
+        },
+        "Name": {
+          "type": "string",
+          "description": "Opportunity name",
+          "required": true,
+          "max_length": 120
+        },
+        "AccountId": {
+          "type": "string",
+          "description": "ID of associated account",
+          "required": false
+        },
+        "Amount": {
+          "type": "currency",
+          "description": "Estimated total value",
+          "required": false
+        },
+        "CloseDate": {
+          "type": "date",
+          "description": "Expected close date",
+          "required": true
+        },
+        "StageName": {
+          "type": "string",
+          "description": "Current stage",
+          "required": true,
+          "enum": ["Prospecting", "Qualification", "Needs Analysis", "Value Proposition", "Id. Decision Makers", "Perception Analysis", "Proposal/Price Quote", "Negotiation/Review", "Closed Won", "Closed Lost"]
+        },
+        "Probability": {
+          "type": "decimal",
+          "description": "Probability of closing (0-100)",
+          "required": false
+        },
+        "Type": {
+          "type": "string",
+          "description": "Type of opportunity",
+          "required": false,
+          "enum": ["Existing Customer - Upgrade", "Existing Customer - Replacement", "Existing Customer - Downgrade", "New Customer"]
+        },
+        "LeadSource": {
+          "type": "string",
+          "description": "Lead source",
+          "required": false
+        },
+        "Description": {
+          "type": "string",
+          "description": "Opportunity description",
+          "required": false
+        },
+        "IsClosed": {
+          "type": "boolean",
+          "description": "Whether opportunity is closed",
+          "required": true
+        },
+        "IsWon": {
+          "type": "boolean",
+          "description": "Whether opportunity was won",
+          "required": true
+        },
+        "OwnerId": {
+          "type": "string",
+          "description": "ID of opportunity owner",
+          "required": false
+        },
+        "ContactId": {
+          "type": "string",
+          "description": "ID of primary contact",
+          "required": false
+        },
+        "CampaignId": {
+          "type": "string",
+          "description": "ID of associated campaign",
+          "required": false
+        },
+        "CreatedDate": {
+          "type": "datetime",
+          "description": "Date and time created",
+          "required": true
+        },
+        "LastModifiedDate": {
+          "type": "datetime",
+          "description": "Date and time last modified",
+          "required": true
+        },
+        "IsDeleted": {
+          "type": "boolean",
+          "description": "Whether record is deleted",
+          "required": true,
+          "default": false
+        }
+      }
+    },
+    "Lead": {
+      "description": "Represents a prospect or potential opportunity",
+      "api_endpoint": "/services/data/v59.0/sobjects/Lead",
+      "fields": {
+        "Id": {
+          "type": "string",
+          "description": "Unique Salesforce ID",
+          "required": true
+        },
+        "FirstName": {
+          "type": "string",
+          "description": "Lead's first name",
+          "required": false,
+          "max_length": 40
+        },
+        "LastName": {
+          "type": "string",
+          "description": "Lead's last name",
+          "required": true,
+          "max_length": 80
+        },
+        "Company": {
+          "type": "string",
+          "description": "Company name",
+          "required": true,
+          "max_length": 255
+        },
+        "Title": {
+          "type": "string",
+          "description": "Job title",
+          "required": false,
+          "max_length": 128
+        },
+        "Email": {
+          "type": "string",
+          "description": "Email address",
+          "required": false,
+          "max_length": 80
+        },
+        "Phone": {
+          "type": "string",
+          "description": "Phone number",
+          "required": false,
+          "max_length": 40
+        },
+        "MobilePhone": {
+          "type": "string",
+          "description": "Mobile phone",
+          "required": false,
+          "max_length": 40
+        },
+        "Website": {
+          "type": "string",
+          "description": "Website URL",
+          "required": false,
+          "max_length": 255
+        },
+        "Street": {
+          "type": "string",
+          "description": "Street address",
+          "required": false
+        },
+        "City": {
+          "type": "string",
+          "description": "City",
+          "required": false,
+          "max_length": 40
+        },
+        "State": {
+          "type": "string",
+          "description": "State/Province",
+          "required": false,
+          "max_length": 80
+        },
+        "PostalCode": {
+          "type": "string",
+          "description": "Postal/ZIP code",
+          "required": false,
+          "max_length": 20
+        },
+        "Country": {
+          "type": "string",
+          "description": "Country",
+          "required": false,
+          "max_length": 80
+        },
+        "Industry": {
+          "type": "string",
+          "description": "Industry",
+          "required": false
+        },
+        "AnnualRevenue": {
+          "type": "currency",
+          "description": "Annual revenue",
+          "required": false
+        },
+        "NumberOfEmployees": {
+          "type": "integer",
+          "description": "Number of employees",
+          "required": false
+        },
+        "Status": {
+          "type": "string",
+          "description": "Lead status",
+          "required": true,
+          "enum": ["Open - Not Contacted", "Working - Contacted", "Closed - Converted", "Closed - Not Converted"]
+        },
+        "LeadSource": {
+          "type": "string",
+          "description": "Lead source",
+          "required": false
+        },
+        "Rating": {
+          "type": "string",
+          "description": "Lead rating",
+          "required": false,
+          "enum": ["Hot", "Warm", "Cold"]
+        },
+        "Description": {
+          "type": "string",
+          "description": "Lead description",
+          "required": false
+        },
+        "IsConverted": {
+          "type": "boolean",
+          "description": "Whether lead is converted",
+          "required": true,
+          "default": false
+        },
+        "ConvertedAccountId": {
+          "type": "string",
+          "description": "ID of converted account",
+          "required": false
+        },
+        "ConvertedContactId": {
+          "type": "string",
+          "description": "ID of converted contact",
+          "required": false
+        },
+        "ConvertedOpportunityId": {
+          "type": "string",
+          "description": "ID of converted opportunity",
+          "required": false
+        },
+        "OwnerId": {
+          "type": "string",
+          "description": "ID of lead owner",
+          "required": false
+        },
+        "CreatedDate": {
+          "type": "datetime",
+          "description": "Date and time created",
+          "required": true
+        },
+        "LastModifiedDate": {
+          "type": "datetime",
+          "description": "Date and time last modified",
+          "required": true
+        },
+        "IsDeleted": {
+          "type": "boolean",
+          "description": "Whether record is deleted",
+          "required": true,
+          "default": false
+        }
+      }
+    }
+  }
+}

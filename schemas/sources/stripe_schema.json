@@ -1,0 +1,588 @@
+{
+  "name": "Stripe",
+  "version": "2024-01",
+  "description": "Stripe billing and payment platform schema",
+  "entities": {
+    "Customer": {
+      "description": "Represents a customer of your business",
+      "api_endpoint": "/v1/customers",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (cus_xxx)",
+          "required": true,
+          "example": "cus_NffrFeUfNV2Hib"
+        },
+        "object": {
+          "type": "string",
+          "description": "Object type, always 'customer'",
+          "required": true,
+          "default": "customer"
+        },
+        "name": {
+          "type": "string",
+          "description": "Customer's full name or business name",
+          "required": false,
+          "max_length": 256
+        },
+        "email": {
+          "type": "string",
+          "description": "Customer's email address",
+          "required": false,
+          "max_length": 512
+        },
+        "phone": {
+          "type": "string",
+          "description": "Customer's phone number",
+          "required": false,
+          "max_length": 20
+        },
+        "description": {
+          "type": "string",
+          "description": "Arbitrary string attached to the object",
+          "required": false
+        },
+        "address": {
+          "type": "object",
+          "description": "Customer's address",
+          "required": false,
+          "properties": {
+            "line1": {"type": "string"},
+            "line2": {"type": "string"},
+            "city": {"type": "string"},
+            "state": {"type": "string"},
+            "postal_code": {"type": "string"},
+            "country": {"type": "string"}
+          }
+        },
+        "shipping": {
+          "type": "object",
+          "description": "Shipping information",
+          "required": false,
+          "properties": {
+            "name": {"type": "string"},
+            "phone": {"type": "string"},
+            "address": {"type": "object"}
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Set of key-value pairs for additional info",
+          "required": false
+        },
+        "created": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "currency": {
+          "type": "string",
+          "description": "Three-letter ISO currency code",
+          "required": false
+        },
+        "default_source": {
+          "type": "string",
+          "description": "ID of the default payment source",
+          "required": false
+        },
+        "balance": {
+          "type": "integer",
+          "description": "Current balance in cents",
+          "required": false,
+          "default": 0
+        },
+        "delinquent": {
+          "type": "boolean",
+          "description": "Whether customer has unpaid invoices",
+          "required": false
+        },
+        "tax_exempt": {
+          "type": "string",
+          "description": "Tax exemption status",
+          "required": false,
+          "enum": ["none", "exempt", "reverse"]
+        },
+        "livemode": {
+          "type": "boolean",
+          "description": "Whether in live mode",
+          "required": true
+        }
+      }
+    },
+    "Product": {
+      "description": "Products describe goods or services you offer",
+      "api_endpoint": "/v1/products",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (prod_xxx)",
+          "required": true,
+          "example": "prod_NWjs8kKbJWmuuc"
+        },
+        "object": {
+          "type": "string",
+          "description": "Object type, always 'product'",
+          "required": true,
+          "default": "product"
+        },
+        "name": {
+          "type": "string",
+          "description": "Product name for display",
+          "required": true
+        },
+        "description": {
+          "type": "string",
+          "description": "Product description",
+          "required": false
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether product is available for purchase",
+          "required": true,
+          "default": true
+        },
+        "default_price": {
+          "type": "string",
+          "description": "ID of the default Price object",
+          "required": false
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Set of key-value pairs",
+          "required": false
+        },
+        "images": {
+          "type": "array",
+          "description": "List of image URLs",
+          "required": false
+        },
+        "created": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "updated": {
+          "type": "integer",
+          "description": "Unix timestamp of last update",
+          "required": true
+        },
+        "type": {
+          "type": "string",
+          "description": "Product type",
+          "enum": ["good", "service"],
+          "required": false
+        },
+        "tax_code": {
+          "type": "string",
+          "description": "Tax code ID",
+          "required": false
+        },
+        "livemode": {
+          "type": "boolean",
+          "description": "Whether in live mode",
+          "required": true
+        }
+      }
+    },
+    "Price": {
+      "description": "Prices define the unit cost, currency, and billing cycle",
+      "api_endpoint": "/v1/prices",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (price_xxx)",
+          "required": true,
+          "example": "price_1MoBy5LkdIwHu7ixZhnattbh"
+        },
+        "object": {
+          "type": "string",
+          "description": "Object type, always 'price'",
+          "required": true,
+          "default": "price"
+        },
+        "product": {
+          "type": "string",
+          "description": "ID of the associated product",
+          "required": true
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether price can be used",
+          "required": true,
+          "default": true
+        },
+        "currency": {
+          "type": "string",
+          "description": "Three-letter ISO currency code",
+          "required": true
+        },
+        "unit_amount": {
+          "type": "integer",
+          "description": "Unit amount in cents",
+          "required": false
+        },
+        "unit_amount_decimal": {
+          "type": "string",
+          "description": "Unit amount as decimal string",
+          "required": false
+        },
+        "billing_scheme": {
+          "type": "string",
+          "description": "How to compute price",
+          "enum": ["per_unit", "tiered"],
+          "required": true
+        },
+        "type": {
+          "type": "string",
+          "description": "Price type",
+          "enum": ["one_time", "recurring"],
+          "required": true
+        },
+        "recurring": {
+          "type": "object",
+          "description": "Recurring billing details",
+          "required": false,
+          "properties": {
+            "interval": {
+              "type": "string",
+              "enum": ["day", "week", "month", "year"]
+            },
+            "interval_count": {
+              "type": "integer"
+            },
+            "usage_type": {
+              "type": "string",
+              "enum": ["metered", "licensed"]
+            },
+            "trial_period_days": {
+              "type": "integer"
+            }
+          }
+        },
+        "nickname": {
+          "type": "string",
+          "description": "Brief description of price",
+          "required": false
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Set of key-value pairs",
+          "required": false
+        },
+        "tiers": {
+          "type": "array",
+          "description": "Tiered pricing tiers",
+          "required": false
+        },
+        "tiers_mode": {
+          "type": "string",
+          "description": "How tiers are applied",
+          "enum": ["graduated", "volume"],
+          "required": false
+        },
+        "created": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "livemode": {
+          "type": "boolean",
+          "description": "Whether in live mode",
+          "required": true
+        }
+      }
+    },
+    "Subscription": {
+      "description": "Subscriptions allow you to charge a customer on a recurring basis",
+      "api_endpoint": "/v1/subscriptions",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (sub_xxx)",
+          "required": true,
+          "example": "sub_1MowQVLkdIwHu7ixeRlqHVzs"
+        },
+        "object": {
+          "type": "string",
+          "description": "Object type, always 'subscription'",
+          "required": true,
+          "default": "subscription"
+        },
+        "customer": {
+          "type": "string",
+          "description": "ID of the customer",
+          "required": true
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status",
+          "required": true,
+          "enum": ["incomplete", "incomplete_expired", "trialing", "active", "past_due", "canceled", "unpaid", "paused"]
+        },
+        "items": {
+          "type": "object",
+          "description": "List of subscription items",
+          "required": true,
+          "properties": {
+            "data": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string"},
+                  "price": {"type": "object"},
+                  "quantity": {"type": "integer"}
+                }
+              }
+            }
+          }
+        },
+        "currency": {
+          "type": "string",
+          "description": "Three-letter ISO currency code",
+          "required": true
+        },
+        "current_period_start": {
+          "type": "integer",
+          "description": "Start of current billing period",
+          "required": true
+        },
+        "current_period_end": {
+          "type": "integer",
+          "description": "End of current billing period",
+          "required": true
+        },
+        "start_date": {
+          "type": "integer",
+          "description": "Start date of subscription",
+          "required": true
+        },
+        "ended_at": {
+          "type": "integer",
+          "description": "When subscription ended",
+          "required": false
+        },
+        "cancel_at": {
+          "type": "integer",
+          "description": "When subscription will be canceled",
+          "required": false
+        },
+        "cancel_at_period_end": {
+          "type": "boolean",
+          "description": "Whether to cancel at period end",
+          "required": false
+        },
+        "canceled_at": {
+          "type": "integer",
+          "description": "When subscription was canceled",
+          "required": false
+        },
+        "trial_start": {
+          "type": "integer",
+          "description": "Start of trial period",
+          "required": false
+        },
+        "trial_end": {
+          "type": "integer",
+          "description": "End of trial period",
+          "required": false
+        },
+        "description": {
+          "type": "string",
+          "description": "Subscription description",
+          "required": false
+        },
+        "default_payment_method": {
+          "type": "string",
+          "description": "Default payment method ID",
+          "required": false
+        },
+        "collection_method": {
+          "type": "string",
+          "description": "How to collect payments",
+          "enum": ["charge_automatically", "send_invoice"],
+          "required": false
+        },
+        "billing_cycle_anchor": {
+          "type": "integer",
+          "description": "Billing cycle anchor timestamp",
+          "required": false
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Set of key-value pairs",
+          "required": false
+        },
+        "created": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "livemode": {
+          "type": "boolean",
+          "description": "Whether in live mode",
+          "required": true
+        }
+      }
+    },
+    "Invoice": {
+      "description": "Invoices are statements of amounts owed by a customer",
+      "api_endpoint": "/v1/invoices",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (in_xxx)",
+          "required": true
+        },
+        "object": {
+          "type": "string",
+          "description": "Object type, always 'invoice'",
+          "required": true,
+          "default": "invoice"
+        },
+        "customer": {
+          "type": "string",
+          "description": "ID of the customer",
+          "required": true
+        },
+        "subscription": {
+          "type": "string",
+          "description": "ID of the subscription",
+          "required": false
+        },
+        "status": {
+          "type": "string",
+          "description": "Invoice status",
+          "enum": ["draft", "open", "paid", "uncollectible", "void"],
+          "required": true
+        },
+        "currency": {
+          "type": "string",
+          "description": "Three-letter ISO currency code",
+          "required": true
+        },
+        "amount_due": {
+          "type": "integer",
+          "description": "Final amount due in cents",
+          "required": true
+        },
+        "amount_paid": {
+          "type": "integer",
+          "description": "Amount paid in cents",
+          "required": true
+        },
+        "amount_remaining": {
+          "type": "integer",
+          "description": "Amount remaining in cents",
+          "required": true
+        },
+        "total": {
+          "type": "integer",
+          "description": "Total after discounts and taxes",
+          "required": true
+        },
+        "subtotal": {
+          "type": "integer",
+          "description": "Total before discounts and taxes",
+          "required": true
+        },
+        "due_date": {
+          "type": "integer",
+          "description": "Due date timestamp",
+          "required": false
+        },
+        "paid": {
+          "type": "boolean",
+          "description": "Whether invoice has been paid",
+          "required": true
+        },
+        "number": {
+          "type": "string",
+          "description": "Invoice number",
+          "required": false
+        },
+        "invoice_pdf": {
+          "type": "string",
+          "description": "URL to PDF",
+          "required": false
+        },
+        "lines": {
+          "type": "object",
+          "description": "Line items on invoice",
+          "required": true
+        },
+        "created": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "livemode": {
+          "type": "boolean",
+          "description": "Whether in live mode",
+          "required": true
+        }
+      }
+    },
+    "PaymentMethod": {
+      "description": "Payment methods represent a customer's payment instrument",
+      "api_endpoint": "/v1/payment_methods",
+      "fields": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (pm_xxx)",
+          "required": true
+        },
+        "object": {
+          "type": "string",
+          "description": "Object type, always 'payment_method'",
+          "required": true,
+          "default": "payment_method"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of payment method",
+          "required": true,
+          "enum": ["card", "bank_account", "sepa_debit", "us_bank_account"]
+        },
+        "customer": {
+          "type": "string",
+          "description": "ID of attached customer",
+          "required": false
+        },
+        "card": {
+          "type": "object",
+          "description": "Card details",
+          "required": false,
+          "properties": {
+            "brand": {"type": "string"},
+            "last4": {"type": "string"},
+            "exp_month": {"type": "integer"},
+            "exp_year": {"type": "integer"},
+            "funding": {"type": "string"}
+          }
+        },
+        "billing_details": {
+          "type": "object",
+          "description": "Billing information",
+          "required": false,
+          "properties": {
+            "name": {"type": "string"},
+            "email": {"type": "string"},
+            "phone": {"type": "string"},
+            "address": {"type": "object"}
+          }
+        },
+        "created": {
+          "type": "integer",
+          "description": "Unix timestamp of creation",
+          "required": true
+        },
+        "livemode": {
+          "type": "boolean",
+          "description": "Whether in live mode",
+          "required": true
+        }
+      }
+    }
+  }
+}

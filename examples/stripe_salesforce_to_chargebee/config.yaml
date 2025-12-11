@@ -1,0 +1,142 @@
+# Migration Configuration: Stripe + Salesforce to Chargebee
+# This example demonstrates migrating customer data, subscriptions, and products
+# from Stripe and Salesforce CRM to Chargebee billing platform.
+
+name: "Stripe & Salesforce to Chargebee Migration"
+description: |
+  Complete migration of billing data from Stripe and CRM data from Salesforce
+  to Chargebee subscription billing platform.
+
+# Source Systems Configuration
+sources:
+  # Stripe API Source
+  - type: api
+    name: stripe_customers
+    service: stripe
+    entity: customers
+    api_endpoint: /v1/customers
+    batch_size: 100
+    rate_limit: 25  # requests per second
+    filters: {}  # Add filters like {"created[gte]": 1704067200}
+
+  - type: api
+    name: stripe_products
+    service: stripe
+    entity: products
+    api_endpoint: /v1/products
+    batch_size: 100
+    filters:
+      active: true
+
+  - type: api
+    name: stripe_prices
+    service: stripe
+    entity: prices
+    api_endpoint: /v1/prices
+    batch_size: 100
+    filters:
+      active: true
+
+  - type: api
+    name: stripe_subscriptions
+    service: stripe
+    entity: subscriptions
+    api_endpoint: /v1/subscriptions
+    batch_size: 100
+    filters: {}
+
+  # Salesforce API Source
+  - type: api
+    name: salesforce_accounts
+    service: salesforce
+    entity: Account
+    batch_size: 200
+    filters: {}
+
+  - type: api
+    name: salesforce_contacts
+    service: salesforce
+    entity: Contact
+    batch_size: 200
+    filters: {}
+
+  - type: api
+    name: salesforce_opportunities
+    service: salesforce
+    entity: Opportunity
+    batch_size: 200
+    filters:
+      StageName: "Closed Won"
+
+  # Alternative: CSV exports
+  # Uncomment these to use CSV files instead of API
+  # - type: csv
+  #   name: stripe_customers_csv
+  #   service: stripe
+  #   entity: customers
+  #   file_path: ./data/exports/stripe_customers.csv
+  #
+  # - type: csv
+  #   name: salesforce_accounts_csv
+  #   service: salesforce
+  #   entity: Account
+  #   file_path: ./data/exports/salesforce_accounts.csv
+
+  # Alternative: Screenshot extraction
+  # For custom data visible in UI but not via API
+  # - type: screenshot
+  #   name: custom_dashboard_data
+  #   service: custom
+  #   entity: dashboard_metrics
+  #   screenshot_path: ./data/screenshots/dashboard/
+
+  # Alternative: Web scraping
+  # For data that needs browser automation to extract
+  # - type: web_scrape
+  #   name: web_data
+  #   service: legacy_system
+  #   entity: records
+  #   url: https://legacy-app.example.com/records
+  #   browser_instructions: |
+  #     1. Log in with provided credentials
+  #     2. Navigate to Records page
+  #     3. Export all records visible in the table
+
+# Target System Configuration
+target_service: chargebee
+target_site: your-site  # Your Chargebee site name
+# target_api_key: Set via CHARGEBEE_API_KEY environment variable
+
+# Mapping Configuration
+mapping_file: ../../mappings/stripe_salesforce_combined.json
+
+# Execution Options
+dry_run: true  # Set to false for actual migration
+batch_size: 10  # Records per batch for loading
+parallel_workers: 1  # Number of parallel workers
+continue_on_error: true  # Continue on individual record failures
+max_errors: 100  # Stop after this many errors
+
+# Deduplication Settings
+# When migrating from multiple sources, deduplicate by email
+deduplication:
+  customers: email
+  Customer: email
+
+# Which source to prefer when deduplicating
+dedup_preferred_source: stripe
+
+# Output Configuration
+output_dir: ./data
+save_extracted: true  # Save extracted data to files
+save_transformed: true  # Save transformed data to files
+
+# LLM-powered features (optional)
+use_llm_inference: false
+# llm_api_key: Set via OPENAI_API_KEY environment variable
+llm_model: gpt-4
+
+# Chargebee-specific defaults
+chargebee_defaults:
+  item_family_id: default-family
+  default_currency: USD

@@ -1,0 +1,700 @@
+{
+  "name": "Stripe and Salesforce to Chargebee Combined Mapping",
+  "version": "1.0",
+  "description": "Combined field mappings from Stripe and Salesforce to Chargebee",
+  "source_services": ["stripe", "salesforce"],
+  "target_service": "chargebee",
+  "mappings": {
+    "Stripe_Customer_to_Chargebee_Customer": {
+      "source": "Stripe.Customer",
+      "target": "Chargebee.Customer",
+      "description": "Map Stripe Customer to Chargebee Customer",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix_strip",
+          "transform_config": {
+            "prefix": "cus_",
+            "new_prefix": "stripe_"
+          },
+          "notes": "Stripe customer ID mapped with prefix change for identification"
+        },
+        {
+          "source_field": "name",
+          "target_field": "first_name",
+          "transform": "split_name",
+          "transform_config": {
+            "part": "first"
+          },
+          "notes": "Extract first name from full name"
+        },
+        {
+          "source_field": "name",
+          "target_field": "last_name",
+          "transform": "split_name",
+          "transform_config": {
+            "part": "last"
+          },
+          "notes": "Extract last name from full name"
+        },
+        {
+          "source_field": "email",
+          "target_field": "email",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 70
+          },
+          "notes": "Direct mapping with length limit"
+        },
+        {
+          "source_field": "phone",
+          "target_field": "phone",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 50
+          },
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "address.line1",
+          "target_field": "billing_address.line1",
+          "transform": "direct",
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "address.line2",
+          "target_field": "billing_address.line2",
+          "transform": "direct",
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "address.city",
+          "target_field": "billing_address.city",
+          "transform": "direct",
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "address.state",
+          "target_field": "billing_address.state",
+          "transform": "direct",
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "address.postal_code",
+          "target_field": "billing_address.zip",
+          "transform": "direct",
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "address.country",
+          "target_field": "billing_address.country",
+          "transform": "country_code",
+          "notes": "Convert to ISO country code if needed"
+        },
+        {
+          "source_field": "currency",
+          "target_field": "preferred_currency_code",
+          "transform": "uppercase",
+          "notes": "Chargebee uses uppercase currency codes"
+        },
+        {
+          "source_field": "tax_exempt",
+          "target_field": "taxability",
+          "transform": "enum_map",
+          "transform_config": {
+            "mapping": {
+              "none": "taxable",
+              "exempt": "exempt",
+              "reverse": "exempt"
+            }
+          },
+          "notes": "Map Stripe tax exemption to Chargebee taxability"
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct",
+          "notes": "Both use Unix timestamps"
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "merge",
+          "notes": "Merge Stripe metadata"
+        },
+        {
+          "source_field": "id",
+          "target_field": "meta_data.stripe_customer_id",
+          "transform": "to_metadata",
+          "notes": "Store original Stripe ID"
+        }
+      ]
+    },
+    "Stripe_Product_to_Chargebee_Item": {
+      "source": "Stripe.Product",
+      "target": "Chargebee.Item",
+      "description": "Map Stripe Product to Chargebee Item",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix_strip",
+          "transform_config": {
+            "prefix": "prod_",
+            "new_prefix": "stripe_"
+          },
+          "notes": "Map product ID with prefix"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 50
+          },
+          "notes": "Chargebee name limited to 50 chars"
+        },
+        {
+          "source_field": "name",
+          "target_field": "external_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 100
+          },
+          "notes": "Use full name as external name"
+        },
+        {
+          "source_field": "description",
+          "target_field": "description",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 500
+          },
+          "notes": "Truncate to Chargebee limit"
+        },
+        {
+          "source_field": "active",
+          "target_field": "status",
+          "transform": "boolean_to_enum",
+          "transform_config": {
+            "true_value": "active",
+            "false_value": "archived"
+          },
+          "notes": "Convert active boolean to status enum"
+        },
+        {
+          "source_field": null,
+          "target_field": "type",
+          "transform": "default",
+          "transform_config": {
+            "value": "plan"
+          },
+          "notes": "Default to 'plan' type"
+        },
+        {
+          "source_field": null,
+          "target_field": "item_family_id",
+          "transform": "default",
+          "transform_config": {
+            "value": "default-family"
+          },
+          "notes": "Item family must be pre-created in Chargebee"
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "merge",
+          "notes": "Copy metadata"
+        }
+      ]
+    },
+    "Stripe_Price_to_Chargebee_ItemPrice": {
+      "source": "Stripe.Price",
+      "target": "Chargebee.ItemPrice",
+      "description": "Map Stripe Price to Chargebee ItemPrice",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix_strip",
+          "transform_config": {
+            "prefix": "price_",
+            "new_prefix": "stripe_"
+          },
+          "notes": "Map price ID with prefix"
+        },
+        {
+          "source_field": "product",
+          "target_field": "item_id",
+          "transform": "prefix_strip",
+          "transform_config": {
+            "prefix": "prod_",
+            "new_prefix": "stripe_"
+          },
+          "notes": "Reference to Item ID"
+        },
+        {
+          "source_field": "nickname",
+          "target_field": "name",
+          "transform": "coalesce",
+          "transform_config": {
+            "fallback_field": "id",
+            "fallback_suffix": ""
+          },
+          "notes": "Use nickname or ID as name"
+        },
+        {
+          "source_field": "unit_amount",
+          "target_field": "price",
+          "transform": "direct",
+          "notes": "Both use cents"
+        },
+        {
+          "source_field": "currency",
+          "target_field": "currency_code",
+          "transform": "uppercase",
+          "notes": "Chargebee uses uppercase"
+        },
+        {
+          "source_field": "billing_scheme",
+          "target_field": "pricing_model",
+          "transform": "enum_map",
+          "transform_config": {
+            "mapping": {
+              "per_unit": "per_unit",
+              "tiered": "tiered"
+            },
+            "default": "flat_fee"
+          },
+          "notes": "Map billing scheme to pricing model"
+        },
+        {
+          "source_field": "type",
+          "target_field": "item_type",
+          "transform": "conditional",
+          "transform_config": {
+            "conditions": [
+              {"value": "recurring", "result": "plan"},
+              {"value": "one_time", "result": "charge"},
+              {"default": "plan"}
+            ]
+          },
+          "notes": "Map price type to item type"
+        },
+        {
+          "source_field": "recurring.interval",
+          "target_field": "period_unit",
+          "transform": "direct",
+          "notes": "Direct mapping of interval"
+        },
+        {
+          "source_field": "recurring.interval_count",
+          "target_field": "period",
+          "transform": "direct",
+          "notes": "Direct mapping of interval count"
+        },
+        {
+          "source_field": "recurring.trial_period_days",
+          "target_field": "trial_period",
+          "transform": "direct",
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": null,
+          "target_field": "trial_period_unit",
+          "transform": "default",
+          "transform_config": {
+            "value": "day"
+          },
+          "notes": "Stripe uses days for trial"
+        },
+        {
+          "source_field": "active",
+          "target_field": "status",
+          "transform": "boolean_to_enum",
+          "transform_config": {
+            "true_value": "active",
+            "false_value": "archived"
+          },
+          "notes": "Convert active boolean to status"
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct",
+          "notes": "Both use Unix timestamps"
+        }
+      ]
+    },
+    "Stripe_Subscription_to_Chargebee_Subscription": {
+      "source": "Stripe.Subscription",
+      "target": "Chargebee.Subscription",
+      "description": "Map Stripe Subscription to Chargebee Subscription",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix_strip",
+          "transform_config": {
+            "prefix": "sub_",
+            "new_prefix": "stripe_"
+          },
+          "notes": "Map subscription ID"
+        },
+        {
+          "source_field": "customer",
+          "target_field": "customer_id",
+          "transform": "prefix_strip",
+          "transform_config": {
+            "prefix": "cus_",
+            "new_prefix": "stripe_"
+          },
+          "notes": "Reference to Customer ID"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "transform": "enum_map",
+          "transform_config": {
+            "mapping": {
+              "active": "active",
+              "trialing": "in_trial",
+              "past_due": "active",
+              "canceled": "cancelled",
+              "unpaid": "active",
+              "incomplete": "future",
+              "incomplete_expired": "cancelled",
+              "paused": "paused"
+            }
+          },
+          "notes": "Map Stripe status to Chargebee status"
+        },
+        {
+          "source_field": "currency",
+          "target_field": "currency_code",
+          "transform": "uppercase",
+          "notes": "Uppercase currency code"
+        },
+        {
+          "source_field": "current_period_start",
+          "target_field": "current_term_start",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "current_period_end",
+          "target_field": "current_term_end",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "current_period_end",
+          "target_field": "next_billing_at",
+          "transform": "direct",
+          "notes": "Next billing is end of current period"
+        },
+        {
+          "source_field": "start_date",
+          "target_field": "started_at",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "canceled_at",
+          "target_field": "cancelled_at",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "trial_start",
+          "target_field": "trial_start",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "trial_end",
+          "target_field": "trial_end",
+          "transform": "direct",
+          "notes": "Direct timestamp mapping"
+        },
+        {
+          "source_field": "collection_method",
+          "target_field": "auto_collection",
+          "transform": "enum_map",
+          "transform_config": {
+            "mapping": {
+              "charge_automatically": "on",
+              "send_invoice": "off"
+            }
+          },
+          "notes": "Map collection method"
+        },
+        {
+          "source_field": "items.data",
+          "target_field": "subscription_items",
+          "transform": "array_map",
+          "transform_config": {
+            "item_mapping": {
+              "price.id": "item_price_id",
+              "quantity": "quantity"
+            },
+            "id_transform": {
+              "prefix": "price_",
+              "new_prefix": "stripe_"
+            }
+          },
+          "notes": "Map subscription items array"
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "merge",
+          "notes": "Copy metadata"
+        }
+      ]
+    },
+    "Salesforce_Account_to_Chargebee_Customer": {
+      "source": "Salesforce.Account",
+      "target": "Chargebee.Customer",
+      "description": "Map Salesforce Account (B2B) to Chargebee Customer",
+      "field_mappings": [
+        {
+          "source_field": "Id",
+          "target_field": "id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_acct_"
+          },
+          "notes": "Prefix Salesforce ID for identification"
+        },
+        {
+          "source_field": "Name",
+          "target_field": "company",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 250
+          },
+          "notes": "Account name becomes company name"
+        },
+        {
+          "source_field": "Phone",
+          "target_field": "phone",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 50
+          },
+          "notes": "Direct phone mapping"
+        },
+        {
+          "source_field": "BillingStreet",
+          "target_field": "billing_address.line1",
+          "transform": "direct",
+          "notes": "Billing street address"
+        },
+        {
+          "source_field": "BillingCity",
+          "target_field": "billing_address.city",
+          "transform": "direct",
+          "notes": "Billing city"
+        },
+        {
+          "source_field": "BillingState",
+          "target_field": "billing_address.state",
+          "transform": "direct",
+          "notes": "Billing state"
+        },
+        {
+          "source_field": "BillingPostalCode",
+          "target_field": "billing_address.zip",
+          "transform": "direct",
+          "notes": "Billing postal code"
+        },
+        {
+          "source_field": "BillingCountry",
+          "target_field": "billing_address.country",
+          "transform": "country_code",
+          "notes": "Convert country name to ISO code"
+        },
+        {
+          "source_field": "Website",
+          "target_field": "meta_data.website",
+          "transform": "to_metadata",
+          "notes": "Store website in metadata"
+        },
+        {
+          "source_field": "Industry",
+          "target_field": "meta_data.industry",
+          "transform": "to_metadata",
+          "notes": "Store industry classification"
+        },
+        {
+          "source_field": "Type",
+          "target_field": "meta_data.account_type",
+          "transform": "to_metadata",
+          "notes": "Store account type for reference"
+        },
+        {
+          "source_field": "CreatedDate",
+          "target_field": "created_at",
+          "transform": "iso_to_unix",
+          "notes": "Convert ISO datetime to Unix timestamp"
+        },
+        {
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_id",
+          "transform": "to_metadata",
+          "notes": "Store original Salesforce ID for reference"
+        }
+      ],
+      "notes": "Salesforce Accounts are organizations; Chargebee Customers need more enrichment from Contacts"
+    },
+    "Salesforce_Contact_to_Chargebee_Customer": {
+      "source": "Salesforce.Contact",
+      "target": "Chargebee.Customer",
+      "description": "Map Salesforce Contact to Chargebee Customer",
+      "field_mappings": [
+        {
+          "source_field": "Id",
+          "target_field": "id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_cont_"
+          },
+          "notes": "Prefix Salesforce ID for identification"
+        },
+        {
+          "source_field": "FirstName",
+          "target_field": "first_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 150
+          },
+          "notes": "Direct first name mapping"
+        },
+        {
+          "source_field": "LastName",
+          "target_field": "last_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 150
+          },
+          "notes": "Direct last name mapping"
+        },
+        {
+          "source_field": "Email",
+          "target_field": "email",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 70
+          },
+          "notes": "Direct email mapping"
+        },
+        {
+          "source_field": "Phone",
+          "target_field": "phone",
+          "transform": "coalesce_fields",
+          "transform_config": {
+            "fallback_fields": ["MobilePhone", "HomePhone"]
+          },
+          "notes": "Use primary phone or fallback to mobile/home"
+        },
+        {
+          "source_field": "MailingStreet",
+          "target_field": "billing_address.line1",
+          "transform": "direct",
+          "notes": "Mailing street as billing address"
+        },
+        {
+          "source_field": "MailingCity",
+          "target_field": "billing_address.city",
+          "transform": "direct",
+          "notes": "Mailing city"
+        },
+        {
+          "source_field": "MailingState",
+          "target_field": "billing_address.state",
+          "transform": "direct",
+          "notes": "Mailing state"
+        },
+        {
+          "source_field": "MailingPostalCode",
+          "target_field": "billing_address.zip",
+          "transform": "direct",
+          "notes": "Mailing postal code"
+        },
+        {
+          "source_field": "MailingCountry",
+          "target_field": "billing_address.country",
+          "transform": "country_code",
+          "notes": "Convert to ISO country code"
+        },
+        {
+          "source_field": "Title",
+          "target_field": "meta_data.job_title",
+          "transform": "to_metadata",
+          "notes": "Store job title in metadata"
+        },
+        {
+          "source_field": "Department",
+          "target_field": "meta_data.department",
+          "transform": "to_metadata",
+          "notes": "Store department in metadata"
+        },
+        {
+          "source_field": "CreatedDate",
+          "target_field": "created_at",
+          "transform": "iso_to_unix",
+          "notes": "Convert ISO datetime to Unix timestamp"
+        },
+        {
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_contact_id",
+          "transform": "to_metadata",
+          "notes": "Store original Salesforce ID"
+        },
+        {
+          "source_field": "AccountId",
+          "target_field": "meta_data.salesforce_account_id",
+          "transform": "to_metadata",
+          "notes": "Store parent Account ID"
+        }
+      ]
+    }
+  },
+  "migration_order": [
+    "Stripe_Product_to_Chargebee_Item",
+    "Stripe_Price_to_Chargebee_ItemPrice",
+    "Stripe_Customer_to_Chargebee_Customer",
+    "Salesforce_Account_to_Chargebee_Customer",
+    "Salesforce_Contact_to_Chargebee_Customer",
+    "Stripe_Subscription_to_Chargebee_Subscription"
+  ],
+  "transform_functions": {
+    "direct": {"description": "Direct 1:1 mapping"},
+    "prefix_add": {"description": "Add prefix to value", "params": ["prefix"]},
+    "prefix_strip": {"description": "Remove prefix, optionally add new", "params": ["prefix", "new_prefix"]},
+    "split_name": {"description": "Split name into first/last", "params": ["part"]},
+    "truncate": {"description": "Truncate to max length", "params": ["max_length"]},
+    "uppercase": {"description": "Convert to uppercase"},
+    "lowercase": {"description": "Convert to lowercase"},
+    "enum_map": {"description": "Map enum values", "params": ["mapping"]},
+    "boolean_to_enum": {"description": "Convert boolean to enum", "params": ["true_value", "false_value"]},
+    "to_metadata": {"description": "Store in metadata"},
+    "merge": {"description": "Merge objects"},
+    "array_map": {"description": "Map array items"},
+    "default": {"description": "Set default value", "params": ["value"]},
+    "coalesce": {"description": "Use first non-null", "params": ["fallback_field"]},
+    "coalesce_fields": {"description": "Use first non-null from fields", "params": ["fallback_fields"]},
+    "conditional": {"description": "Apply conditions", "params": ["conditions"]},
+    "iso_to_unix": {"description": "Convert ISO datetime to Unix timestamp"},
+    "country_code": {"description": "Convert country name to ISO code"}
+  },
+  "notes": "Combined mapping for Stripe and Salesforce to Chargebee migration. Migration order respects dependencies."
+}

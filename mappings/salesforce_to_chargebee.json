@@ -1,0 +1,678 @@
+{
+  "name": "Salesforce to Chargebee Mapping",
+  "version": "1.0",
+  "description": "Field mappings from Salesforce CRM to Chargebee",
+  "mappings": {
+    "Account_to_Customer": {
+      "source": "Salesforce.Account",
+      "target": "Chargebee.Customer",
+      "description": "Map Salesforce Account (B2B) to Chargebee Customer",
+      "field_mappings": [
+        {
+          "source_field": "Id",
+          "target_field": "id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_acct_"
+          },
+          "notes": "Prefix Salesforce ID for identification"
+        },
+        {
+          "source_field": "Name",
+          "target_field": "company",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 250
+          },
+          "notes": "Account name becomes company name"
+        },
+        {
+          "source_field": null,
+          "target_field": "first_name",
+          "transform": "default",
+          "transform_config": {
+            "value": null
+          },
+          "notes": "Account doesn't have personal names - use Contact if needed"
+        },
+        {
+          "source_field": null,
+          "target_field": "last_name",
+          "transform": "default",
+          "transform_config": {
+            "value": null
+          },
+          "notes": "Account doesn't have personal names - use Contact if needed"
+        },
+        {
+          "source_field": "Phone",
+          "target_field": "phone",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 50
+          },
+          "notes": "Direct phone mapping"
+        },
+        {
+          "source_field": "Website",
+          "target_field": "meta_data.website",
+          "transform": "to_metadata",
+          "notes": "Store website in metadata"
+        },
+        {
+          "source_field": "BillingStreet",
+          "target_field": "billing_address.line1",
+          "transform": "direct",
+          "notes": "Billing street address"
+        },
+        {
+          "source_field": "BillingCity",
+          "target_field": "billing_address.city",
+          "transform": "direct",
+          "notes": "Billing city"
+        },
+        {
+          "source_field": "BillingState",
+          "target_field": "billing_address.state",
+          "transform": "direct",
+          "notes": "Billing state"
+        },
+        {
+          "source_field": "BillingPostalCode",
+          "target_field": "billing_address.zip",
+          "transform": "direct",
+          "notes": "Billing postal code"
+        },
+        {
+          "source_field": "BillingCountry",
+          "target_field": "billing_address.country",
+          "transform": "country_code",
+          "notes": "Convert country name to ISO code if needed"
+        },
+        {
+          "source_field": "Description",
+          "target_field": "meta_data.description",
+          "transform": "to_metadata",
+          "notes": "Store description in metadata"
+        },
+        {
+          "source_field": "Industry",
+          "target_field": "meta_data.industry",
+          "transform": "to_metadata",
+          "notes": "Store industry classification"
+        },
+        {
+          "source_field": "Type",
+          "target_field": "meta_data.account_type",
+          "transform": "to_metadata",
+          "notes": "Store account type for reference"
+        },
+        {
+          "source_field": "AnnualRevenue",
+          "target_field": "meta_data.annual_revenue",
+          "transform": "to_metadata",
+          "notes": "Store annual revenue"
+        },
+        {
+          "source_field": "NumberOfEmployees",
+          "target_field": "meta_data.employee_count",
+          "transform": "to_metadata",
+          "notes": "Store employee count"
+        },
+        {
+          "source_field": "AccountNumber",
+          "target_field": "meta_data.salesforce_account_number",
+          "transform": "to_metadata",
+          "notes": "Store Salesforce account number"
+        },
+        {
+          "source_field": "CreatedDate",
+          "target_field": "created_at",
+          "transform": "iso_to_unix",
+          "notes": "Convert ISO datetime to Unix timestamp"
+        },
+        {
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_id",
+          "transform": "to_metadata",
+          "notes": "Store original Salesforce ID for reference"
+        },
+        {
+          "source_field": "OwnerId",
+          "target_field": "meta_data.salesforce_owner_id",
+          "transform": "to_metadata",
+          "notes": "Store owner ID for reference"
+        }
+      ],
+      "notes": "Salesforce Accounts are organizations; Chargebee Customers need more enrichment from Contacts"
+    },
+    "Contact_to_Customer": {
+      "source": "Salesforce.Contact",
+      "target": "Chargebee.Customer",
+      "description": "Map Salesforce Contact (B2C or contact person) to Chargebee Customer",
+      "field_mappings": [
+        {
+          "source_field": "Id",
+          "target_field": "id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_cont_"
+          },
+          "notes": "Prefix Salesforce ID for identification"
+        },
+        {
+          "source_field": "FirstName",
+          "target_field": "first_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 150
+          },
+          "notes": "Direct first name mapping"
+        },
+        {
+          "source_field": "LastName",
+          "target_field": "last_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 150
+          },
+          "notes": "Direct last name mapping"
+        },
+        {
+          "source_field": "Email",
+          "target_field": "email",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 70
+          },
+          "notes": "Direct email mapping"
+        },
+        {
+          "source_field": "Phone",
+          "target_field": "phone",
+          "transform": "coalesce_fields",
+          "transform_config": {
+            "fallback_fields": ["MobilePhone", "HomePhone"]
+          },
+          "notes": "Use primary phone or fallback to mobile/home"
+        },
+        {
+          "source_field": "Account.Name",
+          "target_field": "company",
+          "transform": "lookup",
+          "transform_config": {
+            "lookup_entity": "Account",
+            "lookup_field": "Name",
+            "key_field": "AccountId"
+          },
+          "notes": "Get company name from related Account"
+        },
+        {
+          "source_field": "Title",
+          "target_field": "meta_data.job_title",
+          "transform": "to_metadata",
+          "notes": "Store job title in metadata"
+        },
+        {
+          "source_field": "Department",
+          "target_field": "meta_data.department",
+          "transform": "to_metadata",
+          "notes": "Store department in metadata"
+        },
+        {
+          "source_field": "MailingStreet",
+          "target_field": "billing_address.line1",
+          "transform": "direct",
+          "notes": "Mailing street as billing address"
+        },
+        {
+          "source_field": "MailingCity",
+          "target_field": "billing_address.city",
+          "transform": "direct",
+          "notes": "Mailing city"
+        },
+        {
+          "source_field": "MailingState",
+          "target_field": "billing_address.state",
+          "transform": "direct",
+          "notes": "Mailing state"
+        },
+        {
+          "source_field": "MailingPostalCode",
+          "target_field": "billing_address.zip",
+          "transform": "direct",
+          "notes": "Mailing postal code"
+        },
+        {
+          "source_field": "MailingCountry",
+          "target_field": "billing_address.country",
+          "transform": "country_code",
+          "notes": "Convert to ISO country code"
+        },
+        {
+          "source_field": "OtherStreet",
+          "target_field": "meta_data.other_address.line1",
+          "transform": "to_metadata",
+          "notes": "Store alternate address in metadata"
+        },
+        {
+          "source_field": "OtherCity",
+          "target_field": "meta_data.other_address.city",
+          "transform": "to_metadata",
+          "notes": "Store alternate city in metadata"
+        },
+        {
+          "source_field": "OtherState",
+          "target_field": "meta_data.other_address.state",
+          "transform": "to_metadata",
+          "notes": "Store alternate state in metadata"
+        },
+        {
+          "source_field": "OtherPostalCode",
+          "target_field": "meta_data.other_address.zip",
+          "transform": "to_metadata",
+          "notes": "Store alternate postal code in metadata"
+        },
+        {
+          "source_field": "OtherCountry",
+          "target_field": "meta_data.other_address.country",
+          "transform": "to_metadata",
+          "notes": "Store alternate country in metadata"
+        },
+        {
+          "source_field": "Birthdate",
+          "target_field": "meta_data.birthdate",
+          "transform": "to_metadata",
+          "notes": "Store birthdate in metadata"
+        },
+        {
+          "source_field": "HasOptedOutOfEmail",
+          "target_field": "meta_data.email_opt_out",
+          "transform": "to_metadata",
+          "notes": "Store email preferences"
+        },
+        {
+          "source_field": "DoNotCall",
+          "target_field": "meta_data.do_not_call",
+          "transform": "to_metadata",
+          "notes": "Store call preferences"
+        },
+        {
+          "source_field": "LeadSource",
+          "target_field": "meta_data.lead_source",
+          "transform": "to_metadata",
+          "notes": "Store lead source for attribution"
+        },
+        {
+          "source_field": "Description",
+          "target_field": "meta_data.description",
+          "transform": "to_metadata",
+          "notes": "Store description in metadata"
+        },
+        {
+          "source_field": "CreatedDate",
+          "target_field": "created_at",
+          "transform": "iso_to_unix",
+          "notes": "Convert ISO datetime to Unix timestamp"
+        },
+        {
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_contact_id",
+          "transform": "to_metadata",
+          "notes": "Store original Salesforce ID"
+        },
+        {
+          "source_field": "AccountId",
+          "target_field": "meta_data.salesforce_account_id",
+          "transform": "to_metadata",
+          "notes": "Store parent Account ID"
+        }
+      ],
+      "notes": "Contacts have more personal details but may need Account enrichment for company info"
+    },
+    "Lead_to_Customer": {
+      "source": "Salesforce.Lead",
+      "target": "Chargebee.Customer",
+      "description": "Map Salesforce Lead to Chargebee Customer (for converted leads)",
+      "field_mappings": [
+        {
+          "source_field": "Id",
+          "target_field": "id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_lead_"
+          },
+          "notes": "Prefix for identification"
+        },
+        {
+          "source_field": "FirstName",
+          "target_field": "first_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 150
+          },
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "LastName",
+          "target_field": "last_name",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 150
+          },
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "Email",
+          "target_field": "email",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 70
+          },
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "Phone",
+          "target_field": "phone",
+          "transform": "coalesce_fields",
+          "transform_config": {
+            "fallback_fields": ["MobilePhone"]
+          },
+          "notes": "Use phone or fallback to mobile"
+        },
+        {
+          "source_field": "Company",
+          "target_field": "company",
+          "transform": "truncate",
+          "transform_config": {
+            "max_length": 250
+          },
+          "notes": "Direct mapping"
+        },
+        {
+          "source_field": "Title",
+          "target_field": "meta_data.job_title",
+          "transform": "to_metadata",
+          "notes": "Store in metadata"
+        },
+        {
+          "source_field": "Street",
+          "target_field": "billing_address.line1",
+          "transform": "direct",
+          "notes": "Street address"
+        },
+        {
+          "source_field": "City",
+          "target_field": "billing_address.city",
+          "transform": "direct",
+          "notes": "City"
+        },
+        {
+          "source_field": "State",
+          "target_field": "billing_address.state",
+          "transform": "direct",
+          "notes": "State"
+        },
+        {
+          "source_field": "PostalCode",
+          "target_field": "billing_address.zip",
+          "transform": "direct",
+          "notes": "Postal code"
+        },
+        {
+          "source_field": "Country",
+          "target_field": "billing_address.country",
+          "transform": "country_code",
+          "notes": "Convert to ISO code"
+        },
+        {
+          "source_field": "Website",
+          "target_field": "meta_data.website",
+          "transform": "to_metadata",
+          "notes": "Store website"
+        },
+        {
+          "source_field": "Industry",
+          "target_field": "meta_data.industry",
+          "transform": "to_metadata",
+          "notes": "Store industry"
+        },
+        {
+          "source_field": "LeadSource",
+          "target_field": "meta_data.lead_source",
+          "transform": "to_metadata",
+          "notes": "Store lead source"
+        },
+        {
+          "source_field": "Status",
+          "target_field": "meta_data.lead_status",
+          "transform": "to_metadata",
+          "notes": "Store lead status"
+        },
+        {
+          "source_field": "Rating",
+          "target_field": "meta_data.lead_rating",
+          "transform": "to_metadata",
+          "notes": "Store lead rating"
+        },
+        {
+          "source_field": "AnnualRevenue",
+          "target_field": "meta_data.annual_revenue",
+          "transform": "to_metadata",
+          "notes": "Store annual revenue"
+        },
+        {
+          "source_field": "NumberOfEmployees",
+          "target_field": "meta_data.employee_count",
+          "transform": "to_metadata",
+          "notes": "Store employee count"
+        },
+        {
+          "source_field": "Description",
+          "target_field": "meta_data.description",
+          "transform": "to_metadata",
+          "notes": "Store description"
+        },
+        {
+          "source_field": "IsConverted",
+          "target_field": "meta_data.is_converted",
+          "transform": "to_metadata",
+          "notes": "Store conversion status"
+        },
+        {
+          "source_field": "ConvertedAccountId",
+          "target_field": "meta_data.converted_account_id",
+          "transform": "to_metadata",
+          "notes": "Store converted Account ID"
+        },
+        {
+          "source_field": "ConvertedContactId",
+          "target_field": "meta_data.converted_contact_id",
+          "transform": "to_metadata",
+          "notes": "Store converted Contact ID"
+        },
+        {
+          "source_field": "CreatedDate",
+          "target_field": "created_at",
+          "transform": "iso_to_unix",
+          "notes": "Convert to Unix timestamp"
+        },
+        {
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_lead_id",
+          "transform": "to_metadata",
+          "notes": "Store original ID"
+        }
+      ],
+      "notes": "Use for leads that need subscription capability; prefer Contact_to_Customer for converted leads"
+    },
+    "Opportunity_to_Subscription": {
+      "source": "Salesforce.Opportunity",
+      "target": "Chargebee.Subscription",
+      "description": "Map won Opportunities to Subscriptions (requires additional config)",
+      "field_mappings": [
+        {
+          "source_field": "Id",
+          "target_field": "id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_opp_"
+          },
+          "notes": "Prefix for identification"
+        },
+        {
+          "source_field": "AccountId",
+          "target_field": "customer_id",
+          "transform": "prefix_add",
+          "transform_config": {
+            "prefix": "sf_acct_"
+          },
+          "notes": "Reference to Customer (from Account)"
+        },
+        {
+          "source_field": "StageName",
+          "target_field": "status",
+          "transform": "conditional",
+          "transform_config": {
+            "conditions": [
+              {"value": "Closed Won", "result": "active"},
+              {"value": "Closed Lost", "result": "cancelled"},
+              {"default": "future"}
+            ]
+          },
+          "notes": "Map stage to subscription status"
+        },
+        {
+          "source_field": "Amount",
+          "target_field": "meta_data.opportunity_amount",
+          "transform": "to_metadata",
+          "notes": "Store opportunity amount for reference"
+        },
+        {
+          "source_field": "CloseDate",
+          "target_field": "started_at",
+          "transform": "iso_to_unix",
+          "notes": "Use close date as subscription start"
+        },
+        {
+          "source_field": "CreatedDate",
+          "target_field": "created_at",
+          "transform": "iso_to_unix",
+          "notes": "Convert to Unix timestamp"
+        },
+        {
+          "source_field": "Name",
+          "target_field": "meta_data.opportunity_name",
+          "transform": "to_metadata",
+          "notes": "Store opportunity name"
+        },
+        {
+          "source_field": "Type",
+          "target_field": "meta_data.opportunity_type",
+          "transform": "to_metadata",
+          "notes": "Store opportunity type"
+        },
+        {
+          "source_field": "LeadSource",
+          "target_field": "meta_data.lead_source",
+          "transform": "to_metadata",
+          "notes": "Store lead source"
+        },
+        {
+          "source_field": "Description",
+          "target_field": "meta_data.description",
+          "transform": "to_metadata",
+          "notes": "Store description"
+        },
+        {
+          "source_field": "Probability",
+          "target_field": "meta_data.probability",
+          "transform": "to_metadata",
+          "notes": "Store probability"
+        },
+        {
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_opportunity_id",
+          "transform": "to_metadata",
+          "notes": "Store original ID"
+        }
+      ],
+      "requires": {
+        "item_price_mapping": "Opportunity products must be mapped to Chargebee ItemPrices separately",
+        "customer_exists": "Customer must be created from Account before Subscription"
+      },
+      "notes": "Opportunities don't have recurring billing info - requires manual mapping of products to ItemPrices"
+    }
+  },
+  "transform_functions": {
+    "direct": {
+      "description": "Direct 1:1 mapping"
+    },
+    "prefix_add": {
+      "description": "Add prefix to value",
+      "params": ["prefix"]
+    },
+    "truncate": {
+      "description": "Truncate to max length",
+      "params": ["max_length"]
+    },
+    "to_metadata": {
+      "description": "Store value in meta_data object"
+    },
+    "iso_to_unix": {
+      "description": "Convert ISO datetime string to Unix timestamp"
+    },
+    "country_code": {
+      "description": "Convert country name to ISO 3166-1 alpha-2 code"
+    },
+    "lookup": {
+      "description": "Lookup value from related entity",
+      "params": ["lookup_entity", "lookup_field", "key_field"]
+    },
+    "coalesce_fields": {
+      "description": "Use first non-null value from list of fields",
+      "params": ["fallback_fields"]
+    },
+    "conditional": {
+      "description": "Apply conditions to determine output",
+      "params": ["conditions"]
+    },
+    "default": {
+      "description": "Set default value",
+      "params": ["value"]
+    }
+  },
+  "migration_strategies": {
+    "B2B": {
+      "description": "Business-to-Business: Account-centric approach",
+      "steps": [
+        "Map Salesforce Accounts to Chargebee Customers (primary)",
+        "Enrich with Contact data for billing contact details",
+        "Map Won Opportunities to Subscriptions"
+      ],
+      "recommended_for": "Companies selling to businesses where Account is the billing entity"
+    },
+    "B2C": {
+      "description": "Business-to-Consumer: Contact-centric approach",
+      "steps": [
+        "Map Salesforce Contacts directly to Chargebee Customers",
+        "Use Account only for company enrichment if needed"
+      ],
+      "recommended_for": "Companies selling to individuals"
+    },
+    "Hybrid": {
+      "description": "Mixed approach for complex scenarios",
+      "steps": [
+        "Identify billing entity (Account vs Contact) per record",
+        "Apply appropriate mapping based on entity type",
+        "Maintain relationships via metadata"
+      ],
+      "recommended_for": "Companies with both B2B and B2C customers"
+    }
+  },
+  "migration_order": [
+    "Account_to_Customer OR Contact_to_Customer",
+    "Opportunity_to_Subscription (if applicable)"
+  ],
+  "notes": "Salesforce doesn't have native subscription/billing objects. Subscriptions must be created with product mapping done separately."
+}
