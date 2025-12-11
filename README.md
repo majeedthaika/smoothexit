@@ -4,16 +4,57 @@ A comprehensive service migration framework for migrating data, records, and wor
 
 ## Features
 
+- **Interactive Web UI**: Schema-first workflow with always-visible schemas and mappings
 - **Multiple Data Sources**: Extract data from APIs, CSV/JSON files, screenshots (with vision AI), and web scraping
 - **Schema Registry**: Manage source and target service schemas with validation
 - **Flexible Transformations**: 25+ built-in transformation types for field mapping
+- **Drag-and-Drop Mapping**: Visual field mapping editor with transformation configuration
 - **LLM-Powered Inference**: Use AI to infer schemas and suggest mappings
+- **Real-time Progress**: Server-sent events for live migration monitoring
 - **Batch Streaming**: Process large datasets efficiently with configurable batch sizes
-- **Interactive CLI**: Refine mappings iteratively with preview and validation
 - **Rollback Support**: Track created records for potential rollback
 - **Dry Run Mode**: Test migrations without making actual changes
 
-## Installation
+## Quick Start with Docker
+
+```bash
+# Start the application
+docker-compose up -d
+
+# Access the UI
+open http://localhost:3000
+```
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+
+## Web UI
+
+The web interface provides a schema-first workflow:
+
+### Workspace Layout
+- **Schema Panel** (left sidebar): Always-visible view of source schemas, target schema, and mapping summary
+- **Tabs**: Switch between Schemas, Mappings, and Execute views
+
+### Schemas Tab
+- View and edit source/target schemas
+- Add/remove fields with inline editing
+- Support for nested object fields
+- Upload JSON/CSV to infer schemas (coming soon)
+- API discovery to auto-detect schemas (coming soon)
+
+### Mappings Tab
+- Drag-and-drop field mapping editor
+- Configure transformations (direct, split_name, enum_map, etc.)
+- Visual connection lines between mapped fields
+- Unmapped required fields highlighted
+
+### Execute Tab
+- Configure dry-run or live migration
+- Real-time progress monitoring via SSE
+- View success/failure counts and errors
+
+## Installation (Development)
 
 ```bash
 cd migrate_services
@@ -280,6 +321,25 @@ result = orchestrator.preview_transformation(
 
 print(result.data)  # See transformed output
 ```
+
+## Tech Stack
+
+### Frontend
+- React 18 + TypeScript
+- Vite for build tooling
+- Tailwind CSS for styling
+- Zustand for state management
+- React Query for server state
+- @dnd-kit for drag-and-drop
+
+### Backend
+- FastAPI with async support
+- SSE (Server-Sent Events) for real-time updates
+- Pydantic for data validation
+
+### Infrastructure
+- Docker + docker-compose
+- nginx for frontend serving and API proxy
 
 ## License
 
