@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   X,
   Upload,
@@ -14,11 +14,18 @@ import {
   Link as LinkIcon,
   Play,
   ChevronRight,
+  Server,
+  Plug,
+  PlugZap,
+  RefreshCw,
+  Download,
+  Key,
 } from 'lucide-react';
 import { Button, Card, CardContent, Input } from '@/components/ui';
+import { mcpAPI, type MCPServer, type MCPSchema } from '@/lib/api';
 import type { EntitySchema, EntityMapping } from '@/types/migration';
 
-type InputMethod = 'file' | 'api' | 'screenshot' | 'url' | 'manual';
+type InputMethod = 'file' | 'api' | 'screenshot' | 'url' | 'manual' | 'mcp';
 type OutputType = 'schema' | 'mapping';
 
 interface DataInputModalProps {
@@ -70,9 +77,80 @@ export function DataInputModal({
   const [serviceName, setServiceName] = useState('');
   const [entityName, setEntityName] = useState('');
 
+  // MCP state
+  const [mcpServers, setMcpServers] = useState<MCPServer[]>([]);
+  const [mcpLoading, setMcpLoading] = useState(false);
+  const [mcpConnecting, setMcpConnecting] = useState<string | null>(null);
+  const [mcpFetchingSchemas, setMcpFetchingSchemas] = useState<string | null>(null);
+  const [mcpSchemas, setMcpSchemas] = useState<Record<string, MCPSchema[]>>({});
+  const [mcpApiKeyInputs, setMcpApiKeyInputs] = useState<Record<string, string>>({});
+  const [showMcpApiKeyInput, setShowMcpApiKeyInput] = useState<string | null>(null);
+  const [selectedMcpSchema, setSelectedMcpSchema] = useState<MCPSchema | null>(null);
+
+  // Load MCP servers when MCP method is selected
+  useEffect(() => {
+    if (activeMethod === 'mcp' && mcpServers.length === 0) {
+      loadMcpServers();
+    }
+  }, [activeMethod]);
+
+  const loadMcpServers = async () => {
+    setMcpLoading(true);
+    const result = await mcpAPI.listServers();
+    if (result.data) {
+      setMcpServers(result.data.servers);
+    }
+    setMcpLoading(false);
+  };
+
+  const handleMcpConnect = async (serverName: string) => {
+    const apiKey = mcpApiKeyInputs[serverName];
+    if (!apiKey && showMcpApiKeyInput !== serverName) {
+      setShowMcpApiKeyInput(serverName);
+      return;
+    }
+
+    setMcpConnecting(serverName);
+    setShowMcpApiKeyInput(null);
+
+    const result = await mcpAPI.connectServer(serverName, apiKey);
+    if (result.data) {
+      await loadMcpServers();
+    }
+    setMcpConnecting(null);
+  };
+
+  const handleMcpDisconnect = async (serverName: string) => {
+    setMcpConnecting(serverName);
+    await mcpAPI.disconnectServer(serverName);
+    await loadMcpServers();
+    setMcpSchemas(prev => {
+      const newSchemas = { ...prev };
+      delete newSchemas[serverName];
+      return newSchemas;
+    });
+    setMcpConnecting(null);
+  };
+
+  const handleMcpFetchSchemas = async (serverName: string) => {
+    setMcpFetchingSchemas(serverName);
+    const result = await mcpAPI.fetchSchemas(serverName);
+    if (result.data) {
+      setMcpSchemas(prev => ({ ...prev, [serverName]: result.data!.schemas }));
+    }
+    setMcpFetchingSchemas(null);
+  };
+
+  const handleSelectMcpSchema = (schema: MCPSchema) => {
+    setSelectedMcpSchema(schema);
+    setServiceName(schema.service);
+    setEntityName(schema.entity);
+  };
+
   const inputMethods = [
     { id: 'file' as const, label: 'File Upload', icon: FileJson, description: 'CSV or JSON file' },
     { id: 'api' as const, label: 'API Docs', icon: Globe, description: 'Parse API documentation' },
+    { id: 'mcp' as const, label: 'MCP Server', icon: Server, description: 'Connect to services' },
     { id: 'screenshot' as const, label: 'Screenshot', icon: Image, description: 'Extract from image' },
     { id: 'url' as const, label: 'Web Scrape', icon: LinkIcon, description: 'AI browser agent' },
     { id: 'manual' as const, label: 'Manual', icon: FileText, description: 'Enter directly' },
@@ -176,6 +254,17 @@ export function DataInputModal({
         case 'manual':
           inputData = { service: serviceName, entity: entityName };
           break;
+
+        case 'mcp':
+          if (!selectedMcpSchema) throw new Error('No MCP schema selected');
+          // For MCP, we already have schema data
+          inputData = {
+            service: selectedMcpSchema.service,
+            entity: selectedMcpSchema.entity,
+            fields: selectedMcpSchema.fields,
+            description: selectedMcpSchema.description,
+          };
+          break;
       }
 
       // Now send to AI for transformation
@@ -257,6 +346,8 @@ export function DataInputModal({
     setAiInstructions('');
     setServiceName('');
     setEntityName('');
+    setSelectedMcpSchema(null);
+    setShowMcpApiKeyInput(null);
   };
 
   if (!open) return null;
@@ -472,6 +563,135 @@ export function DataInputModal({
                   <p className="text-xs text-[hsl(var(--muted-foreground))]">
                     Provide AI instructions below to define the fields or mappings you need.
                   </p>
+                </div>
+              )}
+
+              {/* MCP Server */}
+              {activeMethod === 'mcp' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Available Servers</span>
+                    <Button variant="ghost" size="sm" onClick={loadMcpServers} disabled={mcpLoading}>
+                      <RefreshCw className={`h-3 w-3 ${mcpLoading ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+
+                  {mcpLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-[hsl(var(--muted-foreground))]" />
+                    </div>
+                  ) : mcpServers.length === 0 ? (
+                    <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-4">
+                      No MCP servers available
+                    </p>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {mcpServers.map((server) => (
+                        <div key={server.name} className="border rounded-lg p-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${server.connected ? 'bg-green-500' : 'bg-gray-400'}`} />
+                              <span className="font-medium text-sm capitalize">{server.name}</span>
+                            </div>
+                            {server.connected ? (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleMcpFetchSchemas(server.name)}
+                                  disabled={mcpFetchingSchemas === server.name}
+                                  className="h-7 text-xs"
+                                >
+                                  {mcpFetchingSchemas === server.name ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Download className="h-3 w-3" />
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleMcpDisconnect(server.name)}
+                                  disabled={mcpConnecting === server.name}
+                                  className="h-7 text-xs"
+                                >
+                                  <PlugZap className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleMcpConnect(server.name)}
+                                disabled={mcpConnecting === server.name}
+                                className="h-7 text-xs"
+                              >
+                                {mcpConnecting === server.name ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Plug className="h-3 w-3" />
+                                )}
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* API Key Input */}
+                          {showMcpApiKeyInput === server.name && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Key className="h-3 w-3 text-[hsl(var(--muted-foreground))]" />
+                              <Input
+                                type="password"
+                                placeholder="API key..."
+                                value={mcpApiKeyInputs[server.name] || ''}
+                                onChange={(e) => setMcpApiKeyInputs(prev => ({ ...prev, [server.name]: e.target.value }))}
+                                className="h-7 text-xs flex-1"
+                              />
+                              <Button size="sm" className="h-7 text-xs" onClick={() => handleMcpConnect(server.name)}>
+                                Connect
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setShowMcpApiKeyInput(null)}>
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+
+                          {/* Discovered Schemas */}
+                          {mcpSchemas[server.name] && mcpSchemas[server.name].length > 0 && (
+                            <div className="mt-2 pt-2 border-t space-y-1">
+                              <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                                Discovered Schemas ({mcpSchemas[server.name].length})
+                              </span>
+                              {mcpSchemas[server.name].map((schema, idx) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleSelectMcpSchema(schema)}
+                                  className={`w-full text-left px-2 py-1 rounded text-xs hover:bg-[hsl(var(--accent))] ${
+                                    selectedMcpSchema === schema ? 'bg-[hsl(var(--primary))]/10 border border-[hsl(var(--primary))]' : ''
+                                  }`}
+                                >
+                                  <span className="font-medium">{schema.entity}</span>
+                                  <span className="text-[hsl(var(--muted-foreground))] ml-1">
+                                    ({schema.fields.length} fields)
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedMcpSchema && (
+                    <div className="p-2 rounded-lg bg-[hsl(var(--primary))]/10 border border-[hsl(var(--primary))]/30">
+                      <div className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-[hsl(var(--primary))]" />
+                        <span className="text-sm font-medium">
+                          Selected: {selectedMcpSchema.service}.{selectedMcpSchema.entity}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

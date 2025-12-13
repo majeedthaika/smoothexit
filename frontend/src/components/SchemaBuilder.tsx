@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Sparkles, Database, Search } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Select } from '@/components/ui';
 import { DataInputModal } from '@/components/DataInputModal';
-import { MCPServerPanel } from '@/components/MCPServerPanel';
 import { useMigrationStore } from '@/store/migration';
 import type { EntitySchema, FieldSchema } from '@/types/migration';
 
@@ -479,9 +478,6 @@ export function SchemaBuilder() {
         </CardContent>
       </Card>
 
-      {/* MCP Servers */}
-      <MCPServerPanel />
-
       {/* Source Schemas */}
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -493,7 +489,7 @@ export function SchemaBuilder() {
             </Button>
             <Button onClick={handleImportSource}>
               <Upload className="h-4 w-4 mr-2" />
-              Import Custom
+              Import Schema
             </Button>
           </div>
         </div>
@@ -509,7 +505,7 @@ export function SchemaBuilder() {
                 </Button>
                 <Button onClick={handleImportSource}>
                   <Upload className="h-4 w-4 mr-2" />
-                  Import Custom Schema
+                  Import Schema Schema
                 </Button>
               </div>
             </CardContent>
@@ -547,7 +543,7 @@ export function SchemaBuilder() {
           </h3>
           <Button onClick={handleImportTarget} variant="outline">
             <Upload className="h-4 w-4 mr-2" />
-            Import Custom
+            Import Schema
           </Button>
         </div>
         {(schemasByService['chargebee'] || []).length > 0 ? (
@@ -586,7 +582,7 @@ export function SchemaBuilder() {
               </p>
               <Button onClick={handleImportTarget} variant="outline">
                 <Upload className="h-4 w-4 mr-2" />
-                Import Custom Target
+                Import Schema Target
               </Button>
             </CardContent>
           </Card>
