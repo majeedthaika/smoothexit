@@ -1,9 +1,25 @@
-import { useState } from 'react';
-import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Sparkles, Database } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Sparkles, Database, Search } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Select } from '@/components/ui';
 import { DataInputModal } from '@/components/DataInputModal';
+import { MCPServerPanel } from '@/components/MCPServerPanel';
 import { useMigrationStore } from '@/store/migration';
 import type { EntitySchema, FieldSchema } from '@/types/migration';
+
+// Helper to highlight search matches
+function HighlightText({ text, search }: { text: string; search: string }) {
+  if (!search.trim()) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === search.toLowerCase()
+          ? <mark key={i} className="bg-yellow-300 dark:bg-yellow-600 text-inherit rounded px-0.5">{part}</mark>
+          : part
+      )}
+    </>
+  );
+}
 
 const FIELD_TYPES = [
   { value: 'string', label: 'String' },
@@ -290,12 +306,37 @@ export function SchemaBuilder() {
     updateSourceSchema,
     removeSourceSchema,
     setTargetSchema,
+    focusedSchema,
+    setFocusedSchema,
   } = useMigrationStore();
 
   const [showImportModal, setShowImportModal] = useState(false);
   const [importTarget, setImportTarget] = useState<'source' | 'target'>('source');
   const [showSchemaPicker, setShowSchemaPicker] = useState(false);
   const [pickerTarget, setPickerTarget] = useState<'source' | 'target'>('source');
+  const [pickerSearchTerm, setPickerSearchTerm] = useState('');
+  const [selectedForAdd, setSelectedForAdd] = useState<Set<string>>(new Set());
+
+  // Refs for scrolling to schemas
+  const schemaRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Handle focus on a schema from sidebar click
+  useEffect(() => {
+    if (focusedSchema) {
+      const key = `${focusedSchema.service}-${focusedSchema.entity}`;
+      const ref = schemaRefs.current[key];
+      if (ref) {
+        ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Add a highlight animation
+        ref.classList.add('ring-2', 'ring-[hsl(var(--primary))]', 'ring-offset-2');
+        setTimeout(() => {
+          ref.classList.remove('ring-2', 'ring-[hsl(var(--primary))]', 'ring-offset-2');
+        }, 2000);
+      }
+      // Clear the focused schema after handling
+      setFocusedSchema(null);
+    }
+  }, [focusedSchema, setFocusedSchema]);
 
   // Group available schemas by service
   const schemasByService = availableSchemas.reduce((acc, schema) => {
@@ -306,23 +347,62 @@ export function SchemaBuilder() {
     return acc;
   }, {} as Record<string, EntitySchema[]>);
 
-  const handlePickSchema = (schema: EntitySchema) => {
-    if (pickerTarget === 'source') {
-      // Check if already added
-      const exists = sourceSchemas.some(
-        (s) => s.service === schema.service && s.entity === schema.entity
+  // Filter schemas in picker based on search
+  const filteredSchemasByService = useMemo(() => {
+    if (!pickerSearchTerm) return schemasByService;
+
+    const filtered: Record<string, EntitySchema[]> = {};
+    for (const [service, schemas] of Object.entries(schemasByService)) {
+      const matchingSchemas = schemas.filter(s =>
+        s.entity.toLowerCase().includes(pickerSearchTerm.toLowerCase()) ||
+        s.service.toLowerCase().includes(pickerSearchTerm.toLowerCase()) ||
+        s.fields.some(f => f.name.toLowerCase().includes(pickerSearchTerm.toLowerCase()))
       );
-      if (!exists) {
-        addSourceSchema(schema);
+      if (matchingSchemas.length > 0) {
+        filtered[service] = matchingSchemas;
       }
+    }
+    return filtered;
+  }, [schemasByService, pickerSearchTerm]);
+
+  const handlePickSchema = (schema: EntitySchema) => {
+    const key = `${schema.service}:${schema.entity}`;
+    if (pickerTarget === 'source') {
+      // Toggle selection for multi-select
+      const newSelected = new Set(selectedForAdd);
+      if (newSelected.has(key)) {
+        newSelected.delete(key);
+      } else {
+        newSelected.add(key);
+      }
+      setSelectedForAdd(newSelected);
     } else {
       setTargetSchema(schema);
+      setShowSchemaPicker(false);
     }
+  };
+
+  const handleAddSelectedSchemas = () => {
+    selectedForAdd.forEach(key => {
+      const [service, entity] = key.split(':');
+      const schema = availableSchemas.find(s => s.service === service && s.entity === entity);
+      if (schema) {
+        const exists = sourceSchemas.some(
+          (s) => s.service === schema.service && s.entity === schema.entity
+        );
+        if (!exists) {
+          addSourceSchema(schema);
+        }
+      }
+    });
+    setSelectedForAdd(new Set());
     setShowSchemaPicker(false);
   };
 
   const openSourcePicker = () => {
     setPickerTarget('source');
+    setPickerSearchTerm('');
+    setSelectedForAdd(new Set());
     setShowSchemaPicker(true);
   };
 
@@ -372,7 +452,7 @@ export function SchemaBuilder() {
               <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3">
                 Import schemas from multiple sources with AI assistance:
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500"></div>
                   <span>JSON/CSV files</span>
@@ -389,11 +469,18 @@ export function SchemaBuilder() {
                   <div className="w-2 h-2 rounded-full bg-orange-500"></div>
                   <span>Web scraping</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
+                  <span>MCP servers</span>
+                </div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* MCP Servers */}
+      <MCPServerPanel />
 
       {/* Source Schemas */}
       <div>
@@ -430,12 +517,17 @@ export function SchemaBuilder() {
         ) : (
           <div className="grid gap-4">
             {sourceSchemas.map((schema) => (
-              <SchemaEditorCard
+              <div
                 key={`${schema.service}-${schema.entity}`}
-                schema={schema}
-                onUpdate={(updated) => updateSourceSchema(schema.service, schema.entity, updated)}
-                onDelete={() => removeSourceSchema(schema.service, schema.entity)}
-              />
+                ref={(el) => { schemaRefs.current[`${schema.service}-${schema.entity}`] = el; }}
+                className="transition-all duration-300"
+              >
+                <SchemaEditorCard
+                  schema={schema}
+                  onUpdate={(updated) => updateSourceSchema(schema.service, schema.entity, updated)}
+                  onDelete={() => removeSourceSchema(schema.service, schema.entity)}
+                />
+              </div>
             ))}
           </div>
         )}
@@ -461,23 +553,28 @@ export function SchemaBuilder() {
         {(schemasByService['chargebee'] || []).length > 0 ? (
           <div className="grid gap-4 max-h-[600px] overflow-y-auto">
             {(schemasByService['chargebee'] || []).map((schema) => (
-              <SchemaEditorCard
+              <div
                 key={`${schema.service}-${schema.entity}`}
-                schema={schema}
-                isTarget
-                onUpdate={(updated) => {
-                  // For now, we update the single targetSchema if it matches
-                  if (targetSchema?.service === schema.service && targetSchema?.entity === schema.entity) {
-                    setTargetSchema(updated);
-                  }
-                }}
-                onDelete={() => {
-                  // For now, just clear if it's the currently selected target
-                  if (targetSchema?.service === schema.service && targetSchema?.entity === schema.entity) {
-                    setTargetSchema(null);
-                  }
-                }}
-              />
+                ref={(el) => { schemaRefs.current[`${schema.service}-${schema.entity}`] = el; }}
+                className="transition-all duration-300"
+              >
+                <SchemaEditorCard
+                  schema={schema}
+                  isTarget
+                  onUpdate={(updated) => {
+                    // For now, we update the single targetSchema if it matches
+                    if (targetSchema?.service === schema.service && targetSchema?.entity === schema.entity) {
+                      setTargetSchema(updated);
+                    }
+                  }}
+                  onDelete={() => {
+                    // For now, just clear if it's the currently selected target
+                    if (targetSchema?.service === schema.service && targetSchema?.entity === schema.entity) {
+                      setTargetSchema(null);
+                    }
+                  }}
+                />
+              </div>
             ))}
           </div>
         ) : (
@@ -505,47 +602,142 @@ export function SchemaBuilder() {
           />
           <Card className="relative z-10 w-full max-w-2xl max-h-[80vh] overflow-hidden">
             <CardHeader className="border-b">
-              <CardTitle>
-                Select {pickerTarget === 'source' ? 'Source' : 'Target'} Schema
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>
+                  {pickerTarget === 'source' ? 'Browse & Select Source Schemas' : 'Select Target Schema'}
+                </CardTitle>
+                {pickerTarget === 'source' && selectedForAdd.size > 0 && (
+                  <span className="text-sm bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))] px-2 py-1 rounded">
+                    {selectedForAdd.size} selected
+                  </span>
+                )}
+              </div>
+              {/* Search input */}
+              <div className="relative mt-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--muted-foreground))]" />
+                <Input
+                  type="text"
+                  placeholder="Search schemas by name or field..."
+                  value={pickerSearchTerm}
+                  onChange={(e) => setPickerSearchTerm(e.target.value)}
+                  className="pl-9 pr-8"
+                />
+                {pickerSearchTerm && (
+                  <button
+                    onClick={() => setPickerSearchTerm('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </CardHeader>
-            <CardContent className="p-0 overflow-y-auto max-h-[60vh]">
-              {Object.entries(schemasByService).map(([service, schemas]) => (
-                <div key={service} className="border-b last:border-b-0">
-                  <div className="px-4 py-2 bg-[hsl(var(--muted))] font-medium capitalize">
-                    {service} ({schemas.length} entities)
-                  </div>
-                  <div className="grid grid-cols-2 gap-1 p-2">
-                    {schemas.map((schema) => {
-                      const isSelected = pickerTarget === 'source'
-                        ? sourceSchemas.some(s => s.service === schema.service && s.entity === schema.entity)
-                        : targetSchema?.service === schema.service && targetSchema?.entity === schema.entity;
-                      return (
-                        <button
-                          key={`${schema.service}-${schema.entity}`}
-                          onClick={() => handlePickSchema(schema)}
-                          className={`p-3 text-left rounded-lg border transition-colors ${
-                            isSelected
-                              ? 'bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
-                              : 'hover:bg-[hsl(var(--muted))] border-transparent'
-                          }`}
-                        >
-                          <div className="font-medium">{schema.entity}</div>
-                          <div className="text-xs text-[hsl(var(--muted-foreground))]">
-                            {schema.fields.length} fields
-                            {isSelected && ' (selected)'}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+            <CardContent className="p-0 overflow-y-auto max-h-[50vh]">
+              {Object.keys(filteredSchemasByService).length === 0 ? (
+                <div className="p-8 text-center text-[hsl(var(--muted-foreground))]">
+                  No schemas match "{pickerSearchTerm}"
                 </div>
-              ))}
+              ) : (
+                Object.entries(filteredSchemasByService).map(([service, schemas]) => (
+                  <div key={service} className="border-b last:border-b-0">
+                    <div className="px-4 py-2 bg-[hsl(var(--muted))] font-medium capitalize flex items-center justify-between">
+                      <span>{service} ({schemas.length} entities)</span>
+                      {pickerTarget === 'source' && (
+                        <button
+                          onClick={() => {
+                            const serviceSchemaKeys = schemas.map(s => `${s.service}:${s.entity}`);
+                            const allSelected = serviceSchemaKeys.every(k => selectedForAdd.has(k));
+                            const newSelected = new Set(selectedForAdd);
+                            if (allSelected) {
+                              serviceSchemaKeys.forEach(k => newSelected.delete(k));
+                            } else {
+                              serviceSchemaKeys.forEach(k => newSelected.add(k));
+                            }
+                            setSelectedForAdd(newSelected);
+                          }}
+                          className="text-xs text-[hsl(var(--primary))] hover:underline"
+                        >
+                          {schemas.every(s => selectedForAdd.has(`${s.service}:${s.entity}`)) ? 'Deselect all' : 'Select all'}
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-1 p-2">
+                      {schemas.map((schema) => {
+                        const key = `${schema.service}:${schema.entity}`;
+                        const isAlreadyAdded = sourceSchemas.some(s => s.service === schema.service && s.entity === schema.entity);
+                        const isSelected = pickerTarget === 'source'
+                          ? selectedForAdd.has(key)
+                          : targetSchema?.service === schema.service && targetSchema?.entity === schema.entity;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => handlePickSchema(schema)}
+                            className={`p-3 text-left rounded-lg border transition-colors ${
+                              isSelected
+                                ? 'bg-[hsl(var(--primary))]/10 border-[hsl(var(--primary))] text-[hsl(var(--primary))]'
+                                : isAlreadyAdded && pickerTarget === 'source'
+                                ? 'bg-green-500/10 border-green-500/30'
+                                : 'hover:bg-[hsl(var(--muted))] border-transparent'
+                            }`}
+                          >
+                            <div className="font-medium flex items-center gap-2">
+                              {pickerTarget === 'source' && (
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => {}}
+                                  className="rounded"
+                                />
+                              )}
+                              <HighlightText text={schema.entity} search={pickerSearchTerm} />
+                            </div>
+                            <div className="text-xs text-[hsl(var(--muted-foreground))] ml-6">
+                              {schema.fields.length} fields
+                              {isAlreadyAdded && pickerTarget === 'source' && (
+                                <span className="text-green-600 ml-1">(added)</span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))
+              )}
             </CardContent>
-            <div className="border-t p-4 flex justify-end">
-              <Button variant="outline" onClick={() => setShowSchemaPicker(false)}>
-                Close
-              </Button>
+            <div className="border-t p-4 flex justify-between">
+              <div>
+                {pickerTarget === 'source' && selectedForAdd.size > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      // Remove selected that are already added as sources
+                      selectedForAdd.forEach(key => {
+                        const [service, entity] = key.split(':');
+                        if (sourceSchemas.some(s => s.service === service && s.entity === entity)) {
+                          removeSourceSchema(service, entity);
+                        }
+                      });
+                      setSelectedForAdd(new Set());
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Selected
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowSchemaPicker(false)}>
+                  Cancel
+                </Button>
+                {pickerTarget === 'source' && selectedForAdd.size > 0 && (
+                  <Button onClick={handleAddSelectedSchemas}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add {selectedForAdd.size} Schema{selectedForAdd.size !== 1 ? 's' : ''}
+                  </Button>
+                )}
+              </div>
             </div>
           </Card>
         </div>

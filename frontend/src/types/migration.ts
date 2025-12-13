@@ -53,6 +53,33 @@ export interface TargetReference {
   filter_condition?: string;
 }
 
+// Configuration for many-to-one mappings (grouping multiple source rows into one target)
+export interface GroupByConfig {
+  // Fields to group by (these fields determine unique target records)
+  group_by_fields: string[];
+  // Aggregation rules for non-group-by fields
+  aggregations?: Array<{
+    source_field: string;
+    target_field: string;
+    function: 'first' | 'last' | 'sum' | 'count' | 'min' | 'max' | 'concat' | 'array';
+    separator?: string; // For concat aggregation
+  }>;
+}
+
+// Configuration for one-to-many mappings (splitting one source row into multiple targets)
+export interface SplitConfig {
+  // Field containing the value to split
+  split_field: string;
+  // Delimiter to use for splitting
+  delimiter: string;
+  // Target field where split values will be placed
+  target_field: string;
+  // Whether to trim whitespace from split values
+  trim_values?: boolean;
+  // Optional: fields to copy to all split records
+  copy_fields?: string[];
+}
+
 export interface EntityMapping {
   source_service: string;
   source_entity: string;
@@ -76,6 +103,10 @@ export interface EntityMapping {
   additional_targets?: TargetReference[];
   // Mapping cardinality indicator
   cardinality?: '1:1' | '1:many' | 'many:1' | 'many:many';
+  // Group-by configuration for many:1 mappings
+  group_by_config?: GroupByConfig;
+  // Split configuration for 1:many mappings
+  split_config?: SplitConfig;
 }
 
 export interface MigrationStep {

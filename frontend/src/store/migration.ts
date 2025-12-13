@@ -80,6 +80,10 @@ interface MigrationWorkspaceState {
   schemaPanelCollapsed: boolean;
   setSchemaPanelCollapsed: (collapsed: boolean) => void;
 
+  // Schema focus state (for navigating from sidebar to schema builder)
+  focusedSchema: { service: string; entity: string } | null;
+  setFocusedSchema: (schema: { service: string; entity: string } | null) => void;
+
   // Reset workspace
   reset: () => void;
 }
@@ -2477,6 +2481,7 @@ const initialState = {
   sampleData: [] as Record<string, unknown>[],
   chatMessages: [] as ChatMessage[],
   schemaPanelCollapsed: false,
+  focusedSchema: null as { service: string; entity: string } | null,
 };
 
 export const useMigrationStore = create<MigrationWorkspaceState>((set) => ({
@@ -2551,6 +2556,8 @@ export const useMigrationStore = create<MigrationWorkspaceState>((set) => ({
   clearChatMessages: () => set({ chatMessages: [] }),
 
   setSchemaPanelCollapsed: (schemaPanelCollapsed) => set({ schemaPanelCollapsed }),
+
+  setFocusedSchema: (focusedSchema) => set({ focusedSchema }),
 
   reset: () => set(initialState),
 }));

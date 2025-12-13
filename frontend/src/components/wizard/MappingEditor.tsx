@@ -629,6 +629,369 @@ function JoinConfigModal({ open, onClose, sourceSchemas, selectedSourceKeys, cur
   );
 }
 
+// Group-By Configuration Modal for many:1 mappings
+interface GroupByConfigModalProps {
+  open: boolean;
+  onClose: () => void;
+  sourceSchema: EntitySchema | null;
+  currentConfig?: EntityMapping['group_by_config'];
+  onSave: (config: EntityMapping['group_by_config']) => void;
+}
+
+const AGGREGATION_FUNCTIONS = [
+  { value: 'first', label: 'First', description: 'Take the first value' },
+  { value: 'last', label: 'Last', description: 'Take the last value' },
+  { value: 'sum', label: 'Sum', description: 'Sum numeric values' },
+  { value: 'count', label: 'Count', description: 'Count occurrences' },
+  { value: 'min', label: 'Min', description: 'Minimum value' },
+  { value: 'max', label: 'Max', description: 'Maximum value' },
+  { value: 'concat', label: 'Concatenate', description: 'Join values with separator' },
+  { value: 'array', label: 'Array', description: 'Collect all values into array' },
+];
+
+function GroupByConfigModal({ open, onClose, sourceSchema, currentConfig, onSave }: GroupByConfigModalProps) {
+  const [groupByFields, setGroupByFields] = useState<string[]>(currentConfig?.group_by_fields || []);
+  const [aggregations, setAggregations] = useState<Array<{
+    source_field: string;
+    target_field: string;
+    function: 'first' | 'last' | 'sum' | 'count' | 'min' | 'max' | 'concat' | 'array';
+    separator?: string;
+  }>>(currentConfig?.aggregations || []);
+
+  useEffect(() => {
+    if (currentConfig) {
+      setGroupByFields(currentConfig.group_by_fields || []);
+      setAggregations(currentConfig.aggregations || []);
+    }
+  }, [currentConfig]);
+
+  const handleToggleGroupByField = (fieldName: string) => {
+    if (groupByFields.includes(fieldName)) {
+      setGroupByFields(groupByFields.filter(f => f !== fieldName));
+    } else {
+      setGroupByFields([...groupByFields, fieldName]);
+    }
+  };
+
+  const handleAddAggregation = () => {
+    setAggregations([...aggregations, {
+      source_field: '',
+      target_field: '',
+      function: 'first',
+    }]);
+  };
+
+  const handleUpdateAggregation = (index: number, updates: Partial<typeof aggregations[0]>) => {
+    const updated = [...aggregations];
+    updated[index] = { ...updated[index], ...updates };
+    setAggregations(updated);
+  };
+
+  const handleRemoveAggregation = (index: number) => {
+    setAggregations(aggregations.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    onSave({
+      group_by_fields: groupByFields,
+      aggregations: aggregations.filter(a => a.source_field),
+    });
+    onClose();
+  };
+
+  if (!sourceSchema) {
+    return (
+      <Modal open={open} onClose={onClose} title="Configure Group-By">
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+          No source schema selected.
+        </p>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Configure Group-By (Many-to-One)" className="max-w-2xl">
+      <div className="space-y-6">
+        <div className="p-3 bg-purple-500/5 rounded-lg border border-purple-500/20">
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            <strong className="text-purple-600 dark:text-purple-400">Many-to-One Mapping:</strong> Multiple source rows will be grouped into a single target row based on the fields you select below.
+          </p>
+        </div>
+
+        {/* Group By Fields Selection */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">
+            Group By Fields <span className="text-[hsl(var(--muted-foreground))] font-normal">(select fields to determine unique groups)</span>
+          </label>
+          <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-1">
+            {sourceSchema.fields.map((field) => (
+              <label
+                key={field.name}
+                className={cn(
+                  "flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-[hsl(var(--accent))]",
+                  groupByFields.includes(field.name) && "bg-purple-500/10"
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={groupByFields.includes(field.name)}
+                  onChange={() => handleToggleGroupByField(field.name)}
+                  className="rounded"
+                />
+                <span className="font-medium">{field.name}</span>
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">({field.type})</span>
+              </label>
+            ))}
+          </div>
+          {groupByFields.length > 0 && (
+            <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+              Selected: {groupByFields.join(', ')}
+            </p>
+          )}
+        </div>
+
+        {/* Aggregation Rules */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-sm font-medium">
+              Aggregation Rules <span className="text-[hsl(var(--muted-foreground))] font-normal">(how to combine non-grouped fields)</span>
+            </label>
+            <Button variant="outline" size="sm" onClick={handleAddAggregation}>
+              <Plus className="h-3 w-3 mr-1" />
+              Add Rule
+            </Button>
+          </div>
+          {aggregations.length === 0 ? (
+            <p className="text-sm text-[hsl(var(--muted-foreground))] italic p-3 border rounded-lg border-dashed">
+              No aggregation rules defined. Non-grouped fields will use &quot;first&quot; value by default.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {aggregations.map((agg, index) => (
+                <div key={index} className="flex items-center gap-2 p-2 border rounded-lg bg-[hsl(var(--muted))]/50">
+                  <Select
+                    options={sourceSchema.fields.filter(f => !groupByFields.includes(f.name)).map(f => ({ value: f.name, label: f.name }))}
+                    value={agg.source_field}
+                    onChange={(e) => handleUpdateAggregation(index, { source_field: e.target.value, target_field: e.target.value })}
+                    placeholder="Source field..."
+                    className="flex-1"
+                  />
+                  <Select
+                    options={AGGREGATION_FUNCTIONS}
+                    value={agg.function}
+                    onChange={(e) => handleUpdateAggregation(index, { function: e.target.value as typeof agg.function })}
+                    className="w-32"
+                  />
+                  {agg.function === 'concat' && (
+                    <Input
+                      value={agg.separator || ', '}
+                      onChange={(e) => handleUpdateAggregation(index, { separator: e.target.value })}
+                      placeholder="Separator"
+                      className="w-20"
+                    />
+                  )}
+                  <button
+                    onClick={() => handleRemoveAggregation(index)}
+                    className="p-1 text-[hsl(var(--destructive))] hover:bg-[hsl(var(--destructive))]/10 rounded"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={groupByFields.length === 0}>
+            Save Group-By Configuration
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// Split Configuration Modal for 1:many mappings
+interface SplitConfigModalProps {
+  open: boolean;
+  onClose: () => void;
+  sourceSchema: EntitySchema | null;
+  targetSchema: EntitySchema | null;
+  currentConfig?: EntityMapping['split_config'];
+  onSave: (config: EntityMapping['split_config']) => void;
+}
+
+function SplitConfigModal({ open, onClose, sourceSchema, targetSchema, currentConfig, onSave }: SplitConfigModalProps) {
+  const [splitField, setSplitField] = useState(currentConfig?.split_field || '');
+  const [delimiter, setDelimiter] = useState(currentConfig?.delimiter || ',');
+  const [targetField, setTargetField] = useState(currentConfig?.target_field || '');
+  const [trimValues, setTrimValues] = useState(currentConfig?.trim_values ?? true);
+  const [copyFields, setCopyFields] = useState<string[]>(currentConfig?.copy_fields || []);
+
+  useEffect(() => {
+    if (currentConfig) {
+      setSplitField(currentConfig.split_field || '');
+      setDelimiter(currentConfig.delimiter || ',');
+      setTargetField(currentConfig.target_field || '');
+      setTrimValues(currentConfig.trim_values ?? true);
+      setCopyFields(currentConfig.copy_fields || []);
+    }
+  }, [currentConfig]);
+
+  const handleToggleCopyField = (fieldName: string) => {
+    if (copyFields.includes(fieldName)) {
+      setCopyFields(copyFields.filter(f => f !== fieldName));
+    } else {
+      setCopyFields([...copyFields, fieldName]);
+    }
+  };
+
+  const handleSave = () => {
+    onSave({
+      split_field: splitField,
+      delimiter,
+      target_field: targetField,
+      trim_values: trimValues,
+      copy_fields: copyFields.length > 0 ? copyFields : undefined,
+    });
+    onClose();
+  };
+
+  if (!sourceSchema || !targetSchema) {
+    return (
+      <Modal open={open} onClose={onClose} title="Configure Split">
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+          No source or target schema selected.
+        </p>
+      </Modal>
+    );
+  }
+
+  // Get string/array fields that could be split
+  const splittableFields = sourceSchema.fields.filter(f => f.type === 'string' || f.type === 'array');
+
+  return (
+    <Modal open={open} onClose={onClose} title="Configure Split (One-to-Many)" className="max-w-2xl">
+      <div className="space-y-6">
+        <div className="p-3 bg-cyan-500/5 rounded-lg border border-cyan-500/20">
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">
+            <strong className="text-cyan-600 dark:text-cyan-400">One-to-Many Mapping:</strong> A single source row will be split into multiple target rows based on a delimiter in the selected field.
+          </p>
+        </div>
+
+        {/* Split Field Selection */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Field to Split</label>
+            <Select
+              options={splittableFields.map(f => ({ value: f.name, label: `${f.name} (${f.type})` }))}
+              value={splitField}
+              onChange={(e) => setSplitField(e.target.value)}
+              placeholder="Select field to split..."
+            />
+            <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+              This field&apos;s value will be split by the delimiter
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Delimiter</label>
+            <Input
+              value={delimiter}
+              onChange={(e) => setDelimiter(e.target.value)}
+              placeholder="e.g., , or ; or |"
+            />
+            <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+              Character(s) to split on
+            </p>
+          </div>
+        </div>
+
+        {/* Target Field */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">Target Field for Split Values</label>
+          <Select
+            options={targetSchema.fields.map(f => ({ value: f.name, label: `${f.name} (${f.type})` }))}
+            value={targetField}
+            onChange={(e) => setTargetField(e.target.value)}
+            placeholder="Select target field..."
+          />
+          <p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">
+            Each split value will be placed in this target field
+          </p>
+        </div>
+
+        {/* Trim Values */}
+        <div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={trimValues}
+              onChange={(e) => setTrimValues(e.target.checked)}
+              className="rounded"
+            />
+            <span className="text-sm font-medium">Trim whitespace from split values</span>
+          </label>
+        </div>
+
+        {/* Fields to Copy */}
+        <div>
+          <label className="text-sm font-medium mb-2 block">
+            Fields to Copy <span className="text-[hsl(var(--muted-foreground))] font-normal">(will be duplicated in each split record)</span>
+          </label>
+          <div className="border rounded-lg p-3 max-h-40 overflow-y-auto space-y-1">
+            {sourceSchema.fields.filter(f => f.name !== splitField).map((field) => (
+              <label
+                key={field.name}
+                className={cn(
+                  "flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-[hsl(var(--accent))]",
+                  copyFields.includes(field.name) && "bg-cyan-500/10"
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={copyFields.includes(field.name)}
+                  onChange={() => handleToggleCopyField(field.name)}
+                  className="rounded"
+                />
+                <span className="font-medium">{field.name}</span>
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">({field.type})</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Preview Example */}
+        {splitField && delimiter && (
+          <div className="p-3 bg-[hsl(var(--muted))]/50 rounded-lg">
+            <div className="text-xs font-medium mb-2">Example</div>
+            <div className="text-sm">
+              <span className="text-[hsl(var(--muted-foreground))]">Input:</span>{' '}
+              <code className="bg-[hsl(var(--background))] px-1 rounded">value1{delimiter}value2{delimiter}value3</code>
+            </div>
+            <div className="text-sm mt-1">
+              <span className="text-[hsl(var(--muted-foreground))]">Output:</span>{' '}
+              <span className="text-cyan-600 dark:text-cyan-400">3 separate records</span>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!splitField || !delimiter || !targetField}>
+            Save Split Configuration
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 export function MappingEditor() {
   const {
     sourceSchemas,
@@ -648,6 +1011,8 @@ export function MappingEditor() {
   const [aiSuggesting, setAiSuggesting] = useState(false);
   const [multiSourceMode, setMultiSourceMode] = useState(false);
   const [showJoinConfig, setShowJoinConfig] = useState(false);
+  const [showGroupByConfig, setShowGroupByConfig] = useState(false);
+  const [showSplitConfig, setShowSplitConfig] = useState(false);
   const [selectedMappingIndex, setSelectedMappingIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'edit'>('list');
   const [multiTargetMode, setMultiTargetMode] = useState(false);
@@ -933,6 +1298,24 @@ export function MappingEditor() {
   const handleSaveJoinConfig = (joinConfig: EntityMapping['join_config']) => {
     if (selectedMappingIndex !== null) {
       const updated = { ...entityMappings[selectedMappingIndex], join_config: joinConfig };
+      const newEntityMappings = [...entityMappings];
+      newEntityMappings[selectedMappingIndex] = updated;
+      setEntityMappings(newEntityMappings);
+    }
+  };
+
+  const handleSaveGroupByConfig = (groupByConfig: EntityMapping['group_by_config']) => {
+    if (selectedMappingIndex !== null) {
+      const updated = { ...entityMappings[selectedMappingIndex], group_by_config: groupByConfig };
+      const newEntityMappings = [...entityMappings];
+      newEntityMappings[selectedMappingIndex] = updated;
+      setEntityMappings(newEntityMappings);
+    }
+  };
+
+  const handleSaveSplitConfig = (splitConfig: EntityMapping['split_config']) => {
+    if (selectedMappingIndex !== null) {
+      const updated = { ...entityMappings[selectedMappingIndex], split_config: splitConfig };
       const newEntityMappings = [...entityMappings];
       newEntityMappings[selectedMappingIndex] = updated;
       setEntityMappings(newEntityMappings);
@@ -1449,6 +1832,74 @@ export function MappingEditor() {
                   </label>
                 </div>
 
+                {/* Cardinality-specific configuration */}
+                {(multiSourceMode || multiTargetMode) && (
+                  <div className="mt-3 p-3 bg-[hsl(var(--muted))]/50 rounded-lg border">
+                    <div className="text-xs font-medium mb-2 text-[hsl(var(--muted-foreground))] uppercase">
+                      Cardinality Configuration
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {/* Group-By for many:1 */}
+                      {multiSourceMode && !multiTargetMode && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowGroupByConfig(true)}
+                          className="text-purple-600 dark:text-purple-400 border-purple-500/30 hover:bg-purple-500/10"
+                        >
+                          <Settings className="h-3 w-3 mr-1" />
+                          Configure Group-By
+                          {currentMapping?.group_by_config?.group_by_fields?.length && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-purple-500/20 rounded text-[10px]">
+                              {currentMapping.group_by_config.group_by_fields.length} fields
+                            </span>
+                          )}
+                        </Button>
+                      )}
+                      {/* Split for 1:many */}
+                      {multiTargetMode && !multiSourceMode && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowSplitConfig(true)}
+                          className="text-cyan-600 dark:text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10"
+                        >
+                          <Settings className="h-3 w-3 mr-1" />
+                          Configure Split
+                          {currentMapping?.split_config?.split_field && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-cyan-500/20 rounded text-[10px]">
+                              {currentMapping.split_config.split_field}
+                            </span>
+                          )}
+                        </Button>
+                      )}
+                      {/* Both for many:many */}
+                      {multiSourceMode && multiTargetMode && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowGroupByConfig(true)}
+                            className="text-purple-600 dark:text-purple-400 border-purple-500/30 hover:bg-purple-500/10"
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            Group-By
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowSplitConfig(true)}
+                            className="text-cyan-600 dark:text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/10"
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            Split
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Create/Update button */}
                 {selectedMappingIndex === null && (
                   <div className="mt-4 flex justify-end">
@@ -1627,6 +2078,25 @@ export function MappingEditor() {
         selectedSourceKeys={selectedSourceKeys}
         currentJoinConfig={currentMapping?.join_config}
         onSave={handleSaveJoinConfig}
+      />
+
+      {/* Group-By Configuration Modal (for many:1 mappings) */}
+      <GroupByConfigModal
+        open={showGroupByConfig}
+        onClose={() => setShowGroupByConfig(false)}
+        sourceSchema={selectedSourceSchema || null}
+        currentConfig={currentMapping?.group_by_config}
+        onSave={handleSaveGroupByConfig}
+      />
+
+      {/* Split Configuration Modal (for 1:many mappings) */}
+      <SplitConfigModal
+        open={showSplitConfig}
+        onClose={() => setShowSplitConfig(false)}
+        sourceSchema={selectedSourceSchema || null}
+        targetSchema={targetSchema}
+        currentConfig={currentMapping?.split_config}
+        onSave={handleSaveSplitConfig}
       />
     </DndContext>
   );
