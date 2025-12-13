@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -702,10 +702,20 @@ export function MappingEditor() {
     }
   }, [sourceSchemas, selectedSourceKeys.length]);
 
+  // Track last processed mapping index to avoid redundant updates
+  const lastProcessedMappingIndex = useRef<number | null>(null);
+
   // When selecting a mapping from the list, update the source and target keys
   useEffect(() => {
+    // Only process if the index actually changed
+    if (selectedMappingIndex === lastProcessedMappingIndex.current) {
+      return;
+    }
+
     if (selectedMappingIndex !== null && entityMappings[selectedMappingIndex]) {
       const mapping = entityMappings[selectedMappingIndex];
+      lastProcessedMappingIndex.current = selectedMappingIndex;
+
       // Set source keys
       const sourceKeys = [`${mapping.source_service}:${mapping.source_entity}`];
       if (mapping.additional_sources) {
@@ -733,8 +743,11 @@ export function MappingEditor() {
       if (primaryTargetSchema) {
         setTargetSchema(primaryTargetSchema);
       }
+    } else if (selectedMappingIndex === null) {
+      lastProcessedMappingIndex.current = null;
     }
-  }, [selectedMappingIndex, entityMappings, targetSchemas, setTargetSchema]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMappingIndex]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveField(event.active.data.current?.field);
