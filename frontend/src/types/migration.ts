@@ -33,6 +33,24 @@ export interface FieldMapping {
   target_field: string;
   transform: string;
   config: Record<string, unknown>;
+  // For multi-source joins: specify which source schema this field comes from
+  source_service?: string;
+  source_entity?: string;
+}
+
+// Source reference for multi-source mappings
+export interface SourceReference {
+  service: string;
+  entity: string;
+  join_key?: string; // Field to join on (e.g., 'customer_id', 'email')
+}
+
+// Target reference for 1:many mappings (one source to multiple targets)
+export interface TargetReference {
+  service: string;
+  entity: string;
+  // Filter/condition for which records go to this target (optional)
+  filter_condition?: string;
 }
 
 export interface EntityMapping {
@@ -41,6 +59,23 @@ export interface EntityMapping {
   target_service: string;
   target_entity: string;
   field_mappings: FieldMapping[];
+  // For multi-source joins (many:1): additional sources that contribute to this target
+  additional_sources?: SourceReference[];
+  // Join configuration for multi-source mappings
+  join_config?: {
+    type: 'inner' | 'left' | 'right' | 'full';
+    primary_source: SourceReference;
+    join_conditions: Array<{
+      left_source: SourceReference;
+      left_field: string;
+      right_source: SourceReference;
+      right_field: string;
+    }>;
+  };
+  // For 1:many mappings: additional targets that this source maps to
+  additional_targets?: TargetReference[];
+  // Mapping cardinality indicator
+  cardinality?: '1:1' | '1:many' | 'many:1' | 'many:many';
 }
 
 export interface MigrationStep {
