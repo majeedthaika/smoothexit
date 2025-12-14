@@ -1,0 +1,30 @@
+<svg width="220" height="50" viewBox="0 0 220 50" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="readme-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#64748b" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+  </defs>
+
+  <!-- "sm" text -->
+  <text x="0" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="500" fill="#1e293b">sm</text>
+
+  <!-- First "o" - concentric circles (slate) -->
+  <circle cx="50" cy="27" r="16" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.2" />
+  <circle cx="50" cy="27" r="12" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.4" />
+  <circle cx="50" cy="27" r="8" fill="none" stroke="#64748b" stroke-width="2" opacity="0.9" />
+
+  <!-- Second "o" - concentric circles (emerald) -->
+  <circle cx="68" cy="27" r="8" fill="none" stroke="#6ee7b7" stroke-width="2" opacity="0.9" />
+  <circle cx="68" cy="27" r="12" fill="none" stroke="#6ee7b7" stroke-width="1.5" opacity="0.4" />
+  <circle cx="68" cy="27" r="16" fill="none" stroke="#6ee7b7" stroke-width="1.5" opacity="0.2" />
+
+  <!-- Connection line -->
+  <path d="M59 27 L60 27" stroke="url(#readme-gradient)" stroke-width="2" stroke-linecap="round" />
+
+  <!-- "th" text -->
+  <text x="81" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="500" fill="#1e293b">th</text>
+
+  <!-- "exit" text (emerald) -->
+  <text x="113" y="35" font-family="system-ui, -apple-system, sans-serif" font-size="32" font-weight="600" fill="#10b981">exit</text>
+</svg>

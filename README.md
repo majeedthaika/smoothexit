@@ -1,6 +1,12 @@
-# smoothexit
+<p align="center">
+  <img src="frontend/public/smoothexit-logo.svg" alt="smoothexit" width="280" />
+</p>
 
-A schema-first data migration platform for seamlessly moving data between SaaS platforms (e.g., Stripe + Salesforce to Chargebee).
+<p align="center">
+  A schema-first data migration platform for seamlessly moving data between SaaS platforms.
+</p>
+
+---
 
 ## Features
 
