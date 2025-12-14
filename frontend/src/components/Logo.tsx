@@ -5,11 +5,11 @@ interface LogoProps {
 }
 
 export function Logo({ size = 'md', showText = true, className = '' }: LogoProps) {
-  // Size configurations based on filled circles design
+  // Size configurations - viewBox width matches actual content width for proper centering
   const sizes = {
-    sm: { width: 150, height: 36, fontSize: 23, viewBox: '0 0 150 36' },
-    md: { width: 210, height: 50, fontSize: 32, viewBox: '0 0 210 50' },
-    lg: { width: 320, height: 70, fontSize: 44, viewBox: '0 0 320 70' },
+    sm: { width: 138, height: 36, fontSize: 23, viewBox: '0 0 138 36' },
+    md: { width: 193, height: 50, fontSize: 32, viewBox: '0 0 193 50' },
+    lg: { width: 270, height: 70, fontSize: 44, viewBox: '0 0 270 70' },
   };
 
   const config = sizes[size];
