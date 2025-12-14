@@ -26,7 +26,7 @@ const SERVICE_LOGOS: Record<string, { logo: string; type: 'svg' | 'favicon' }> =
   'Recurly': { logo: 'https://www.google.com/s2/favicons?domain=recurly.com&sz=64', type: 'favicon' },
   'Zuora': { logo: 'https://www.google.com/s2/favicons?domain=zuora.com&sz=64', type: 'favicon' },
   'Pipedrive': { logo: 'https://www.google.com/s2/favicons?domain=pipedrive.com&sz=64', type: 'favicon' },
-  'Magento': { logo: 'https://www.google.com/s2/favicons?domain=magento.com&sz=64', type: 'favicon' },
+  'Magento': { logo: 'https://img.icons8.com/color/48/magento.png', type: 'favicon' },
 };
 
 // Component for service logo with fallback
