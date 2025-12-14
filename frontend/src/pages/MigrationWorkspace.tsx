@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Database, GitBranch, Play, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Database, GitBranch, Play, ChevronLeft, ChevronRight, AlertCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Logo } from '@/components/Logo';
@@ -15,7 +15,11 @@ const TABS = [
   { id: 'mappings' as const, label: 'Mappings', icon: GitBranch, description: 'Manage mappings' },
 ];
 
-export function MigrationWorkspace() {
+interface MigrationWorkspaceProps {
+  onLogout?: () => void;
+}
+
+export function MigrationWorkspace({ onLogout }: MigrationWorkspaceProps) {
   const { activeTab, setActiveTab, schemaPanelCollapsed, setSchemaPanelCollapsed, schemasModified, mappingsModified } = useMigrationStore();
   const hasUnsavedChanges = schemasModified || mappingsModified;
 
@@ -49,6 +53,12 @@ export function MigrationWorkspace() {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
+          {onLogout && (
+            <Button variant="ghost" size="sm" onClick={onLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
+          )}
           <Link to="/app">
             <Button variant="outline" size="sm">Back to Dashboard</Button>
           </Link>

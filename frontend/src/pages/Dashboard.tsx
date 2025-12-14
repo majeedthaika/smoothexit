@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Clock, CheckCircle, XCircle, Loader2, Trash2, Play, Database, GitBranch, GitMerge, ChevronDown, ChevronRight, ArrowRight, Edit2, Link2, Search, X } from 'lucide-react';
+import { Plus, Clock, CheckCircle, XCircle, Loader2, Trash2, Play, Database, GitBranch, GitMerge, ChevronDown, ChevronRight, ArrowRight, Edit2, Link2, Search, X, LogOut } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Input } from '@/components/ui';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Logo } from '@/components/Logo';
@@ -273,7 +273,11 @@ function DashboardMappingCard({ mapping, searchTerm = '' }: { mapping: EntityMap
   );
 }
 
-export function Dashboard() {
+interface DashboardProps {
+  onLogout?: () => void;
+}
+
+export function Dashboard({ onLogout }: DashboardProps) {
   const [migrations, setMigrations] = useState<Migration[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -412,6 +416,12 @@ export function Dashboard() {
               Back to Home
             </Link>
             <ThemeToggle />
+            {onLogout && (
+              <Button variant="ghost" size="sm" onClick={onLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            )}
             <Link to="/workspace">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
