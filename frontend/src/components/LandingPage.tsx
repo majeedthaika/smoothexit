@@ -157,7 +157,7 @@ export function LandingPage() {
           <Logo size="md" />
           <div className="flex items-center gap-4">
             <a href="/app" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
-              Open App
+              Login
             </a>
             <Button onClick={scrollToForm}>
               Request Migration
@@ -395,7 +395,7 @@ export function LandingPage() {
           </p>
           <div className="flex items-center gap-6">
             <a href="/app" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
-              Open App
+              Login
             </a>
           </div>
         </div>
