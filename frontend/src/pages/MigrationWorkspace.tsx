@@ -38,7 +38,7 @@ export function MigrationWorkspace() {
       <header className="flex h-14 items-center justify-between border-b px-4">
         <div className="flex items-center gap-4">
           <Link to="/" className="hover:opacity-80 transition-opacity">
-            <Logo size="sm" />
+            <Logo size="sm" showText={false} />
           </Link>
           {hasUnsavedChanges && (
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
