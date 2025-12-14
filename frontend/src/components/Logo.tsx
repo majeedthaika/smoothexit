@@ -137,7 +137,7 @@ export function Logo({ size = 'md', showText = true, className = '' }: LogoProps
         strokeLinecap="round"
       />
 
-      {/* "th" text */}
+      {/* "thexit" - combined to eliminate gap */}
       <text
         x={size === 'lg' ? 81 : 66}
         y={size === 'lg' ? 35 : 28}
@@ -146,19 +146,7 @@ export function Logo({ size = 'md', showText = true, className = '' }: LogoProps
         fontWeight="500"
         fill="currentColor"
       >
-        th
-      </text>
-
-      {/* "exit" text */}
-      <text
-        x={size === 'lg' ? 113 : 93}
-        y={size === 'lg' ? 35 : 28}
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize={config.fontSize}
-        fontWeight="600"
-        fill={emeraldColor}
-      >
-        exit
+        th<tspan fontWeight="600" fill={emeraldColor}>exit</tspan>
       </text>
     </svg>
   );
