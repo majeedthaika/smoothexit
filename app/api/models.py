@@ -109,6 +109,31 @@ class MappingSaveRequest(BaseModel):
     field_mappings: List[FieldMappingCreate]
 
 
+class BatchUploadRequest(BaseModel):
+    """Request for uploading a batch of records to target service."""
+    target_service: str
+    target_entity: str
+    records: List[Dict[str, Any]]
+    api_key: str
+    site: Optional[str] = None
+    dry_run: bool = True
+
+
+class BatchUploadResultItem(BaseModel):
+    """Result for a single record in batch upload."""
+    source_index: int
+    target_id: Optional[str] = None
+    error: Optional[str] = None
+
+
+class BatchUploadResponse(BaseModel):
+    """Response for batch upload operation."""
+    results: List[BatchUploadResultItem]
+    total: int
+    succeeded: int
+    failed: int
+
+
 # Response Models
 class FieldSchema(BaseModel):
     name: str

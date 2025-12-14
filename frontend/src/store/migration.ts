@@ -104,6 +104,72 @@ interface MigrationWorkspaceState {
   discardSchemaChanges: () => void;
   discardMappingChanges: () => void;
 
+  // Migration Run State (for the 4-step migration wizard)
+  migrationRunStep: 1 | 2 | 3 | 4;
+  setMigrationRunStep: (step: 1 | 2 | 3 | 4) => void;
+
+  // Step 1: Selected mappings
+  selectedMappingKeys: string[];
+  setSelectedMappingKeys: (keys: string[]) => void;
+  toggleMappingSelection: (key: string) => void;
+
+  // Step 2: Uploaded source data
+  uploadedSourceData: Record<string, {
+    fileName: string;
+    data: Record<string, unknown>[];
+    columns: string[];
+    rowCount: number;
+  }>;
+  setUploadedSourceData: (key: string, data: {
+    fileName: string;
+    data: Record<string, unknown>[];
+    columns: string[];
+    rowCount: number;
+  }) => void;
+  clearUploadedSourceData: () => void;
+
+  // Step 3: Transformation
+  transformMode: 'sample' | 'full';
+  setTransformMode: (mode: 'sample' | 'full') => void;
+  sampleSize: number;
+  setSampleSize: (size: number) => void;
+  transformedData: Record<string, Record<string, unknown>[]>;
+  setTransformedData: (data: Record<string, Record<string, unknown>[]>) => void;
+  transformErrors: { entity: string; row: number; error: string }[];
+  setTransformErrors: (errors: { entity: string; row: number; error: string }[]) => void;
+
+  // Step 4: Upload to target
+  uploadProgress: {
+    total: number;
+    processed: number;
+    succeeded: number;
+    failed: number;
+  };
+  setUploadProgress: (progress: {
+    total: number;
+    processed: number;
+    succeeded: number;
+    failed: number;
+  }) => void;
+  uploadResults: {
+    entity: string;
+    sourceIndex: number;
+    targetId?: string;
+    error?: string;
+  }[];
+  addUploadResult: (result: {
+    entity: string;
+    sourceIndex: number;
+    targetId?: string;
+    error?: string;
+  }) => void;
+  clearUploadResults: () => void;
+  uploadStatus: 'idle' | 'running' | 'paused' | 'completed' | 'failed';
+  setUploadStatus: (status: 'idle' | 'running' | 'paused' | 'completed' | 'failed') => void;
+
+  // Reset migration run
+  resetMigrationRun: () => void;
+
   // Reset workspace
   reset: () => void;
 }
@@ -2508,6 +2574,23 @@ const initialState = {
   savedSourceSchemas: seedSourceSchemas,
   savedTargetSchema: seedTargetSchema,
   savedEntityMappings: seedEntityMappings,
+
+  // Migration Run State
+  migrationRunStep: 1 as 1 | 2 | 3 | 4,
+  selectedMappingKeys: [] as string[],
+  uploadedSourceData: {} as Record<string, {
+    fileName: string;
+    data: Record<string, unknown>[];
+    columns: string[];
+    rowCount: number;
+  }>,
+  transformMode: 'sample' as 'sample' | 'full',
+  sampleSize: 10,
+  transformedData: {} as Record<string, Record<string, unknown>[]>,
+  transformErrors: [] as { entity: string; row: number; error: string }[],
+  uploadProgress: { total: 0, processed: 0, succeeded: 0, failed: 0 },
+  uploadResults: [] as { entity: string; sourceIndex: number; targetId?: string; error?: string }[],
+  uploadStatus: 'idle' as 'idle' | 'running' | 'paused' | 'completed' | 'failed',
 };
 
 export const useMigrationStore = create<MigrationWorkspaceState>((set) => ({
@@ -2626,6 +2709,50 @@ export const useMigrationStore = create<MigrationWorkspaceState>((set) => ({
       entityMappings: JSON.parse(JSON.stringify(state.savedEntityMappings)),
       mappingsModified: false,
     })),
+
+  // Migration Run State
+  setMigrationRunStep: (migrationRunStep) => set({ migrationRunStep }),
+
+  setSelectedMappingKeys: (selectedMappingKeys) => set({ selectedMappingKeys }),
+  toggleMappingSelection: (key) =>
+    set((state) => ({
+      selectedMappingKeys: state.selectedMappingKeys.includes(key)
+        ? state.selectedMappingKeys.filter((k) => k !== key)
+        : [...state.selectedMappingKeys, key],
+    })),
+
+  setUploadedSourceData: (key, data) =>
+    set((state) => ({
+      uploadedSourceData: { ...state.uploadedSourceData, [key]: data },
+    })),
+  clearUploadedSourceData: () => set({ uploadedSourceData: {} }),
+
+  setTransformMode: (transformMode) => set({ transformMode }),
+  setSampleSize: (sampleSize) => set({ sampleSize }),
+  setTransformedData: (transformedData) => set({ transformedData }),
+  setTransformErrors: (transformErrors) => set({ transformErrors }),
+
+  setUploadProgress: (uploadProgress) => set({ uploadProgress }),
+  addUploadResult: (result) =>
+    set((state) => ({
+      uploadResults: [...state.uploadResults, result],
+    })),
+  clearUploadResults: () => set({ uploadResults: [] }),
+  setUploadStatus: (uploadStatus) => set({ uploadStatus }),
+
+  resetMigrationRun: () =>
+    set({
+      migrationRunStep: 1,
+      selectedMappingKeys: [],
+      uploadedSourceData: {},
+      transformMode: 'sample',
+      sampleSize: 10,
+      transformedData: {},
+      transformErrors: [],
+      uploadProgress: { total: 0, processed: 0, succeeded: 0, failed: 0 },
+      uploadResults: [],
+      uploadStatus: 'idle',
+    }),
 
   reset: () => set(initialState),
 }));

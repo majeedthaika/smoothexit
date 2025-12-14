@@ -1,26 +1,16 @@
 <svg width="260" height="56" viewBox="0 0 260 56" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="readme-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#64748b" />
-      <stop offset="100%" stop-color="#10b981" />
-    </linearGradient>
-  </defs>
-
   <!-- "sm" text -->
   <text x="0" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="500" fill="#1e293b">sm</text>
 
-  <!-- First "o" - concentric circles (slate) -->
-  <circle cx="56" cy="30" r="18" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.15" />
-  <circle cx="56" cy="30" r="13" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.3" />
-  <circle cx="56" cy="30" r="9" fill="none" stroke="#64748b" stroke-width="2" opacity="0.9" />
+  <!-- First "o" - filled circles (slate) -->
+  <circle cx="56" cy="30" r="18" fill="#64748b" opacity="0.1" />
+  <circle cx="56" cy="30" r="13" fill="#64748b" opacity="0.2" />
+  <circle cx="56" cy="30" r="9" fill="#64748b" opacity="0.85" />
 
-  <!-- Second "o" - concentric circles (emerald) -->
-  <circle cx="76" cy="30" r="9" fill="none" stroke="#10b981" stroke-width="2" opacity="0.9" />
-  <circle cx="76" cy="30" r="13" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.3" />
-  <circle cx="76" cy="30" r="18" fill="none" stroke="#10b981" stroke-width="1.5" opacity="0.15" />
-
-  <!-- Connection line -->
-  <path d="M66 30 L67 30" stroke="url(#readme-gradient)" stroke-width="2" stroke-linecap="round" />
+  <!-- Second "o" - filled circles (emerald) -->
+  <circle cx="76" cy="30" r="18" fill="#10b981" opacity="0.1" />
+  <circle cx="76" cy="30" r="13" fill="#10b981" opacity="0.2" />
+  <circle cx="76" cy="30" r="9" fill="#10b981" opacity="0.85" />
 
   <!-- "thexit" text -->
   <text x="86" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="500" fill="#1e293b">th<tspan fill="#10b981" font-weight="600">exit</tspan></text>

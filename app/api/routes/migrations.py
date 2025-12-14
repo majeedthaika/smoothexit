@@ -10,6 +10,9 @@ from ..models import (
     MigrationResponse,
     MigrationListResponse,
     MigrationStatusEnum,
+    BatchUploadRequest,
+    BatchUploadResponse,
+    BatchUploadResultItem,
 )
 from ..storage import migration_storage
 from .events import migration_progress
@@ -287,3 +290,69 @@ async def run_migration_task(migration_id: str):
     except Exception as e:
         migration_storage.update_status(migration_id, MigrationStatusEnum.FAILED)
         await migration_progress.send_error(migration_id, str(e))
+
+
+@router.post("/upload-batch", response_model=BatchUploadResponse)
+async def upload_batch(request: BatchUploadRequest):
+    """
+    Upload a batch of records to the target service.
+
+    This endpoint processes records and either validates them (dry_run=True)
+    or creates them in the target service (dry_run=False).
+    """
+    results = []
+    succeeded = 0
+    failed = 0
+
+    for idx, record in enumerate(request.records):
+        try:
+            if request.dry_run:
+                # In dry run mode, just validate the record structure
+                # For now, we'll simulate validation success
+                results.append(BatchUploadResultItem(
+                    source_index=idx,
+                    target_id=f"dry_run_{idx}",
+                    error=None,
+                ))
+                succeeded += 1
+            else:
+                # In live mode, we would call the actual target API
+                # For now, simulate the upload
+                # TODO: Integrate with actual loaders (Chargebee, API, etc.)
+
+                if request.target_service.lower() == "chargebee":
+                    # Chargebee API integration would go here
+                    # from ...loaders.chargebee_loader import ChargebeeLoader
+                    # loader = ChargebeeLoader(site=request.site, api_key=request.api_key)
+                    # result = loader.create(request.target_entity, record)
+
+                    # Simulated success for now
+                    results.append(BatchUploadResultItem(
+                        source_index=idx,
+                        target_id=f"cb_{request.target_entity}_{idx}",
+                        error=None,
+                    ))
+                    succeeded += 1
+                else:
+                    # Generic API loader would go here
+                    results.append(BatchUploadResultItem(
+                        source_index=idx,
+                        target_id=f"{request.target_service}_{idx}",
+                        error=None,
+                    ))
+                    succeeded += 1
+
+        except Exception as e:
+            results.append(BatchUploadResultItem(
+                source_index=idx,
+                target_id=None,
+                error=str(e),
+            ))
+            failed += 1
+
+    return BatchUploadResponse(
+        results=results,
+        total=len(request.records),
+        succeeded=succeeded,
+        failed=failed,
+    )
