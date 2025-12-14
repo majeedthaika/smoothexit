@@ -91,6 +91,19 @@ interface MigrationWorkspaceState {
   mappingsModified: boolean;
   setMappingsModified: (modified: boolean) => void;
 
+  // Saved state for discard functionality
+  savedSourceSchemas: EntitySchema[];
+  savedTargetSchema: EntitySchema | null;
+  savedEntityMappings: EntityMapping[];
+
+  // Mark current state as saved (called after successful save)
+  markSchemasSaved: () => void;
+  markMappingsSaved: () => void;
+
+  // Discard pending changes (revert to saved state)
+  discardSchemaChanges: () => void;
+  discardMappingChanges: () => void;
+
   // Reset workspace
   reset: () => void;
 }
@@ -2491,6 +2504,10 @@ const initialState = {
   focusedSchema: null as { service: string; entity: string } | null,
   schemasModified: false,
   mappingsModified: false,
+  // Saved state (for discard functionality) - initially matches current state
+  savedSourceSchemas: seedSourceSchemas,
+  savedTargetSchema: seedTargetSchema,
+  savedEntityMappings: seedEntityMappings,
 };
 
 export const useMigrationStore = create<MigrationWorkspaceState>((set) => ({
@@ -2583,6 +2600,32 @@ export const useMigrationStore = create<MigrationWorkspaceState>((set) => ({
   // Dirty state management
   setSchemasModified: (schemasModified) => set({ schemasModified }),
   setMappingsModified: (mappingsModified) => set({ mappingsModified }),
+
+  // Mark current state as saved (creates snapshot for discard)
+  markSchemasSaved: () =>
+    set((state) => ({
+      savedSourceSchemas: JSON.parse(JSON.stringify(state.sourceSchemas)),
+      savedTargetSchema: state.targetSchema ? JSON.parse(JSON.stringify(state.targetSchema)) : null,
+      schemasModified: false,
+    })),
+  markMappingsSaved: () =>
+    set((state) => ({
+      savedEntityMappings: JSON.parse(JSON.stringify(state.entityMappings)),
+      mappingsModified: false,
+    })),
+
+  // Discard pending changes (revert to saved state)
+  discardSchemaChanges: () =>
+    set((state) => ({
+      sourceSchemas: JSON.parse(JSON.stringify(state.savedSourceSchemas)),
+      targetSchema: state.savedTargetSchema ? JSON.parse(JSON.stringify(state.savedTargetSchema)) : null,
+      schemasModified: false,
+    })),
+  discardMappingChanges: () =>
+    set((state) => ({
+      entityMappings: JSON.parse(JSON.stringify(state.savedEntityMappings)),
+      mappingsModified: false,
+    })),
 
   reset: () => set(initialState),
 }));

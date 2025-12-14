@@ -9,7 +9,7 @@ import {
   type DragEndEvent,
 } from '@dnd-kit/core';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { ArrowRight, Plus, Trash2, Settings, GripVertical, Upload, Sparkles, Wand2, Link2, X, Edit2, Copy, GitMerge, Save, Loader2 } from 'lucide-react';
+import { ArrowRight, Plus, Trash2, Settings, GripVertical, Upload, Sparkles, Wand2, Link2, X, Edit2, Copy, GitMerge, Save, Loader2, RotateCcw } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Select, Input, Modal } from '@/components/ui';
 import { DataInputModal } from '@/components/DataInputModal';
 import { useMigrationStore } from '@/store/migration';
@@ -639,7 +639,8 @@ export function MappingEditor() {
     addEntityMapping,
     availableSchemas,
     mappingsModified,
-    setMappingsModified,
+    markMappingsSaved,
+    discardMappingChanges,
   } = useMigrationStore();
 
   const [transforms, setTransforms] = useState<TransformType[]>([]);
@@ -959,12 +960,21 @@ export function MappingEditor() {
       if (result.error) {
         setSaveError(result.error);
       } else {
-        setMappingsModified(false);
+        markMappingsSaved();
       }
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save mappings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDiscardMappings = () => {
+    if (window.confirm('Discard all unsaved mapping changes? This cannot be undone.')) {
+      discardMappingChanges();
+      setSaveError(null);
+      setSelectedMappingIndex(null);
+      setViewMode('list');
     }
   };
 
@@ -1064,6 +1074,17 @@ export function MappingEditor() {
             )}
             {saveError && (
               <span className="text-sm text-[hsl(var(--destructive))]">{saveError}</span>
+            )}
+            {mappingsModified && (
+              <Button
+                onClick={handleDiscardMappings}
+                variant="outline"
+                size="sm"
+                disabled={saving}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Discard
+              </Button>
             )}
             <Button
               onClick={handleSaveMappings}

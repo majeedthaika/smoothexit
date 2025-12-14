@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Sparkles, Database, Search, Save, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Sparkles, Database, Search, Save, Loader2, RotateCcw } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Select } from '@/components/ui';
 import { DataInputModal } from '@/components/DataInputModal';
 import { useMigrationStore } from '@/store/migration';
@@ -310,7 +310,8 @@ export function SchemaBuilder() {
     focusedSchema,
     setFocusedSchema,
     schemasModified,
-    setSchemasModified,
+    markSchemasSaved,
+    discardSchemaChanges,
   } = useMigrationStore();
 
   const [showImportModal, setShowImportModal] = useState(false);
@@ -435,12 +436,19 @@ export function SchemaBuilder() {
       if (result.error) {
         setSaveError(result.error);
       } else {
-        setSchemasModified(false);
+        markSchemasSaved();
       }
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save schemas');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDiscardSchemas = () => {
+    if (window.confirm('Discard all unsaved schema changes? This cannot be undone.')) {
+      discardSchemaChanges();
+      setSaveError(null);
     }
   };
 
@@ -460,6 +468,16 @@ export function SchemaBuilder() {
           )}
           {saveError && (
             <span className="text-sm text-[hsl(var(--destructive))]">{saveError}</span>
+          )}
+          {schemasModified && (
+            <Button
+              onClick={handleDiscardSchemas}
+              variant="outline"
+              disabled={saving}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Discard
+            </Button>
           )}
           <Button
             onClick={handleSaveSchemas}
