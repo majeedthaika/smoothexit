@@ -1,6 +1,6 @@
-# Migrate Services
+# smoothexit
 
-A comprehensive service migration framework for migrating data, records, and workflows between SaaS platforms (e.g., Stripe + Salesforce to Chargebee).
+A schema-first data migration platform for seamlessly moving data between SaaS platforms (e.g., Stripe + Salesforce to Chargebee).
 
 ## Features
 
@@ -57,7 +57,7 @@ The web interface provides a schema-first workflow:
 ## Installation (Development)
 
 ```bash
-cd migrate_services
+cd smoothexit
 pip install -r requirements.txt
 
 # For browser automation (optional)
@@ -109,7 +109,7 @@ python -m app.cli infer --input data/sample.json --service custom --entity recor
 ## Project Structure
 
 ```
-migrate_services/
+smoothexit/
 ├── app/
 │   ├── models/
 │   │   ├── schema.py       # Schema and mapping definitions
@@ -325,11 +325,10 @@ print(result.data)  # See transformed output
 ## Tech Stack
 
 ### Frontend
-- React 18 + TypeScript
+- React 19 + TypeScript
 - Vite for build tooling
-- Tailwind CSS for styling
+- Tailwind CSS 4 for styling
 - Zustand for state management
-- React Query for server state
 - @dnd-kit for drag-and-drop
 
 ### Backend
