@@ -1,15 +1,15 @@
-<svg width="32" height="32" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="favicon-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#64748b" />
       <stop offset="100%" stop-color="#6ee7b7" />
     </linearGradient>
   </defs>
-  <circle cx="18" cy="26" r="14" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.2" />
-  <circle cx="18" cy="26" r="10" fill="none" stroke="#64748b" stroke-width="1.5" opacity="0.4" />
-  <circle cx="18" cy="26" r="7" fill="none" stroke="#64748b" stroke-width="2" opacity="0.9" />
-  <circle cx="34" cy="26" r="7" fill="none" stroke="#6ee7b7" stroke-width="2" opacity="0.9" />
-  <circle cx="34" cy="26" r="10" fill="none" stroke="#6ee7b7" stroke-width="1.5" opacity="0.4" />
-  <circle cx="34" cy="26" r="14" fill="none" stroke="#6ee7b7" stroke-width="1.5" opacity="0.2" />
-  <path d="M25 26 L27 26" stroke="url(#favicon-gradient)" stroke-width="2" stroke-linecap="round" />
+  <circle cx="16" cy="24" r="14" fill="none" stroke="#64748b" stroke-width="1" opacity="0.25" />
+  <circle cx="16" cy="24" r="10" fill="none" stroke="#64748b" stroke-width="1" opacity="0.5" />
+  <circle cx="16" cy="24" r="7" fill="none" stroke="#64748b" stroke-width="2" opacity="0.9" />
+  <circle cx="32" cy="24" r="7" fill="none" stroke="#6ee7b7" stroke-width="2" opacity="0.9" />
+  <circle cx="32" cy="24" r="10" fill="none" stroke="#6ee7b7" stroke-width="1" opacity="0.5" />
+  <circle cx="32" cy="24" r="14" fill="none" stroke="#6ee7b7" stroke-width="1" opacity="0.25" />
+  <path d="M23 24 L25 24" stroke="url(#favicon-gradient)" stroke-width="2" stroke-linecap="round" />
 </svg>
