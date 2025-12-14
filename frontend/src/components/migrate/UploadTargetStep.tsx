@@ -11,8 +11,6 @@ export function UploadTargetStep() {
     setTargetSite,
     targetApiKey,
     setTargetApiKey,
-    dryRun,
-    setDryRun,
     batchSize,
     setBatchSize,
     transformedData,
@@ -77,7 +75,7 @@ export function UploadTargetStep() {
                 records: batch,
                 api_key: targetApiKey,
                 site: targetSite || undefined,
-                dry_run: dryRun,
+                dry_run: false,
               }),
             });
 
@@ -206,29 +204,6 @@ export function UploadTargetStep() {
             />
           </div>
 
-          <div className="flex items-center gap-6">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                checked={dryRun}
-                onChange={() => setDryRun(true)}
-                className="w-4 h-4"
-                disabled={uploadStatus === 'running' || uploadStatus === 'paused'}
-              />
-              <span className="text-sm">Dry Run (validate only)</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                checked={!dryRun}
-                onChange={() => setDryRun(false)}
-                className="w-4 h-4"
-                disabled={uploadStatus === 'running' || uploadStatus === 'paused'}
-              />
-              <span className="text-sm">Live (create records)</span>
-            </label>
-          </div>
-
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium">Batch size:</label>
             <Input
@@ -245,7 +220,7 @@ export function UploadTargetStep() {
             {uploadStatus === 'idle' && (
               <Button onClick={handleStartUpload} disabled={!targetApiKey || totalRecords === 0}>
                 <Play className="h-4 w-4 mr-2" />
-                {dryRun ? 'Start Dry Run' : 'Start Upload'}
+                Start Upload
               </Button>
             )}
             {(uploadStatus === 'running' || uploadStatus === 'paused') && (
@@ -370,11 +345,9 @@ export function UploadTargetStep() {
         <Card className="bg-green-500/5 border-green-500/20">
           <CardContent className="py-6 text-center">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-            <h3 className="font-semibold text-lg mb-1">
-              {dryRun ? 'Dry Run Complete' : 'Upload Complete'}
-            </h3>
+            <h3 className="font-semibold text-lg mb-1">Upload Complete</h3>
             <p className="text-[hsl(var(--muted-foreground))]">
-              {uploadProgress.succeeded.toLocaleString()} records {dryRun ? 'validated' : 'created'} successfully
+              {uploadProgress.succeeded.toLocaleString()} records created successfully
               {uploadProgress.failed > 0 && `, ${uploadProgress.failed.toLocaleString()} failed`}
             </p>
           </CardContent>
