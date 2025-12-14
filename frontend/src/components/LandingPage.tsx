@@ -36,10 +36,10 @@ function ServiceLogo({ name }: { name: string }) {
   if (!service) {
     // Fallback icons for services without logos
     if (name === 'CSV/Excel') {
-      return <FileSpreadsheet className="h-5 w-5 text-[hsl(var(--muted-foreground))]" />;
+      return <FileSpreadsheet className="h-6 w-6 text-[hsl(var(--muted-foreground))]" />;
     }
     if (name === 'REST APIs') {
-      return <Globe className="h-5 w-5 text-[hsl(var(--muted-foreground))]" />;
+      return <Globe className="h-6 w-6 text-[hsl(var(--muted-foreground))]" />;
     }
     return null;
   }
@@ -48,7 +48,7 @@ function ServiceLogo({ name }: { name: string }) {
     <img
       src={service.logo}
       alt={`${name} logo`}
-      className="h-5 w-5"
+      className="h-6 w-6"
       loading="lazy"
     />
   );
@@ -214,7 +214,7 @@ export function LandingPage() {
                     {category.services.map((service) => (
                       <span
                         key={service}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]/80 transition-colors"
+                        className="inline-flex items-center gap-2.5 px-4 py-2 text-base rounded-lg bg-[hsl(var(--muted))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))]/80 transition-colors"
                       >
                         <ServiceLogo name={service} />
                         {service}
