@@ -15,21 +15,25 @@ export function Logo({ size = 'md', showText = true, className = '' }: LogoProps
   const config = sizes[size];
 
   // Circle positions and sizes for each logo size - filled circles design
+  // Offset added to center content within viewBox
   const circleConfigs = {
     sm: {
-      leftCx: 36, rightCx: 49, cy: 19,
+      offset: 4,
+      leftCx: 40, rightCx: 53, cy: 19,
       outerR: 11, midR: 8, innerR: 5.5,
-      textX: 55, textY: 25
+      textX: 59, textY: 25
     },
     md: {
-      leftCx: 50, rightCx: 68, cy: 27,
+      offset: 6,
+      leftCx: 56, rightCx: 74, cy: 27,
       outerR: 16, midR: 12, innerR: 8,
-      textX: 77, textY: 35
+      textX: 83, textY: 35
     },
     lg: {
-      leftCx: 68, rightCx: 93, cy: 36,
+      offset: 10,
+      leftCx: 78, rightCx: 103, cy: 36,
       outerR: 22, midR: 16, innerR: 11,
-      textX: 105, textY: 48
+      textX: 115, textY: 48
     },
   };
 
@@ -61,83 +65,133 @@ export function Logo({ size = 'md', showText = true, className = '' }: LogoProps
     );
   }
 
-  // Full logo with text - filled circles design
+  // Full logo with text - filled circles design with hover animation
   return (
     <svg
       width={config.width}
       height={config.height}
       viewBox={config.viewBox}
-      className={className}
+      className={`block group/logo ${className}`}
     >
-      {/* "sm" text */}
-      <text
-        x="0"
-        y={circles.textY}
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize={config.fontSize}
-        fontWeight="500"
-        fill="currentColor"
-      >
-        sm
-      </text>
+      <style>{`
+        @keyframes pulse-left {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(0.85); opacity: 0.6; }
+        }
+        @keyframes pulse-right-3x {
+          0%, 100% { transform: scale(1); }
+          10%, 30%, 50% { transform: scale(1.12); }
+          20%, 40%, 60% { transform: scale(1); }
+        }
+        @keyframes arrow-travel {
+          0% { opacity: 0; transform: translateX(-8px); }
+          20% { opacity: 1; transform: translateX(0); }
+          80% { opacity: 1; transform: translateX(0); }
+          100% { opacity: 0; transform: translateX(8px); }
+        }
+        .logo-hover:hover .left-o {
+          animation: pulse-left 0.4s ease-in-out;
+        }
+        .logo-hover:hover .right-o {
+          animation: pulse-right-3x 1s ease-in-out 0.2s;
+        }
+        .logo-hover:hover .travel-arrow {
+          animation: arrow-travel 0.5s ease-in-out;
+        }
+        .travel-arrow {
+          opacity: 0;
+        }
+      `}</style>
 
-      {/* First "o" - filled circles (slate) */}
-      <circle
-        cx={circles.leftCx}
-        cy={circles.cy}
-        r={circles.outerR}
-        fill={slateColor}
-        opacity="0.15"
-      />
-      <circle
-        cx={circles.leftCx}
-        cy={circles.cy}
-        r={circles.midR}
-        fill={slateColor}
-        opacity="0.25"
-      />
-      <circle
-        cx={circles.leftCx}
-        cy={circles.cy}
-        r={circles.innerR}
-        fill={slateColor}
-        opacity="0.9"
-      />
+      <g className="logo-hover">
+        {/* "sm" text */}
+        <text
+          x={circles.offset}
+          y={circles.textY}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize={config.fontSize}
+          fontWeight="500"
+          fill="currentColor"
+        >
+          sm
+        </text>
 
-      {/* Second "o" - filled circles (emerald) */}
-      <circle
-        cx={circles.rightCx}
-        cy={circles.cy}
-        r={circles.outerR}
-        fill={emeraldLight}
-        opacity="0.15"
-      />
-      <circle
-        cx={circles.rightCx}
-        cy={circles.cy}
-        r={circles.midR}
-        fill={emeraldLight}
-        opacity="0.25"
-      />
-      <circle
-        cx={circles.rightCx}
-        cy={circles.cy}
-        r={circles.innerR}
-        fill={emeraldLight}
-        opacity="0.9"
-      />
+        {/* First "o" - filled circles (slate) */}
+        <g className="left-o" style={{ transformOrigin: `${circles.leftCx}px ${circles.cy}px` }}>
+          <circle
+            cx={circles.leftCx}
+            cy={circles.cy}
+            r={circles.outerR}
+            fill={slateColor}
+            opacity="0.15"
+          />
+          <circle
+            cx={circles.leftCx}
+            cy={circles.cy}
+            r={circles.midR}
+            fill={slateColor}
+            opacity="0.25"
+          />
+          <circle
+            cx={circles.leftCx}
+            cy={circles.cy}
+            r={circles.innerR}
+            fill={slateColor}
+            opacity="0.9"
+          />
+        </g>
 
-      {/* "thexit" text */}
-      <text
-        x={circles.textX}
-        y={circles.textY}
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize={config.fontSize}
-        fontWeight="500"
-        fill="currentColor"
-      >
-        th<tspan fontWeight="600" fill={emeraldColor}>exit</tspan>
-      </text>
+        {/* Traveling arrow head */}
+        <g className="travel-arrow" style={{ transformOrigin: `${(circles.leftCx + circles.rightCx) / 2}px ${circles.cy}px` }}>
+          <path
+            d={`M${(circles.leftCx + circles.rightCx) / 2 - 4} ${circles.cy - 5}
+                L${(circles.leftCx + circles.rightCx) / 2 + 2} ${circles.cy}
+                L${(circles.leftCx + circles.rightCx) / 2 - 4} ${circles.cy + 5}`}
+            stroke={emeraldLight}
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+
+        {/* Second "o" - filled circles (emerald) */}
+        <g className="right-o" style={{ transformOrigin: `${circles.rightCx}px ${circles.cy}px` }}>
+          <circle
+            cx={circles.rightCx}
+            cy={circles.cy}
+            r={circles.outerR}
+            fill={emeraldLight}
+            opacity="0.15"
+          />
+          <circle
+            cx={circles.rightCx}
+            cy={circles.cy}
+            r={circles.midR}
+            fill={emeraldLight}
+            opacity="0.25"
+          />
+          <circle
+            cx={circles.rightCx}
+            cy={circles.cy}
+            r={circles.innerR}
+            fill={emeraldLight}
+            opacity="0.9"
+          />
+        </g>
+
+        {/* "thexit" text */}
+        <text
+          x={circles.textX}
+          y={circles.textY}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize={config.fontSize}
+          fontWeight="500"
+          fill="currentColor"
+        >
+          th<tspan fontWeight="600" fill={emeraldColor}>exit</tspan>
+        </text>
+      </g>
     </svg>
   );
 }

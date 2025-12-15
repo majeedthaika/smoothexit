@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Database, GitBranch, Play, ChevronLeft, ChevronRight, AlertCircle, LogOut } from 'lucide-react';
+import { Database, GitBranch, Play, ChevronLeft, ChevronRight, AlertCircle, LogOut, Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from '@/components/ThemeProvider';
 import { Logo } from '@/components/Logo';
 import { SchemaPanel } from '@/components/SchemaPanel';
 import { MigrateTab } from '@/components/MigrateTab';
@@ -20,6 +20,7 @@ interface MigrationWorkspaceProps {
 }
 
 export function MigrationWorkspace({ onLogout }: MigrationWorkspaceProps) {
+  const { theme, setTheme } = useTheme();
   const { activeTab, setActiveTab, schemaPanelCollapsed, setSchemaPanelCollapsed, schemasModified, mappingsModified } = useMigrationStore();
   const hasUnsavedChanges = schemasModified || mappingsModified;
 
@@ -52,7 +53,6 @@ export function MigrationWorkspace({ onLogout }: MigrationWorkspaceProps) {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           {onLogout && (
             <Button variant="ghost" size="sm" onClick={onLogout}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -118,6 +118,38 @@ export function MigrationWorkspace({ onLogout }: MigrationWorkspaceProps) {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="flex-shrink-0 border-t border-[hsl(var(--border))] py-2 px-4">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
+            ← Back to Home
+          </Link>
+          <div className="flex items-center gap-1 border border-[hsl(var(--border))] rounded-lg p-1">
+            <button
+              onClick={() => setTheme('light')}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'light' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'dark' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setTheme('system')}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'system' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+              title="System theme"
+            >
+              <Monitor className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

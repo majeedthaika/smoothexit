@@ -395,11 +395,7 @@ export function LandingPage() {
           <p className="text-sm text-[hsl(var(--muted-foreground))]">
             © {new Date().getFullYear()} SmoothExit. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
-            <a href="/app" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]">
-              Login
-            </a>
-            <div className="flex items-center gap-1 border border-[hsl(var(--border))] rounded-lg p-1">
+          <div className="flex items-center gap-1 border border-[hsl(var(--border))] rounded-lg p-1">
               <button
                 onClick={() => setTheme('light')}
                 className={`p-1.5 rounded-md transition-colors ${theme === 'light' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
@@ -421,7 +417,6 @@ export function LandingPage() {
               >
                 <Monitor className="h-4 w-4" />
               </button>
-            </div>
           </div>
         </div>
       </footer>

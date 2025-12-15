@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Clock, CheckCircle, XCircle, Loader2, Trash2, Play, Database, GitBranch, GitMerge, ChevronDown, ChevronRight, ArrowRight, Edit2, Link2, Search, X, LogOut } from 'lucide-react';
+import { Plus, Clock, CheckCircle, XCircle, Loader2, Trash2, Play, Database, GitBranch, GitMerge, ChevronDown, ChevronRight, ArrowRight, Edit2, Link2, Search, X, LogOut, Sun, Moon, Monitor } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Badge, Input } from '@/components/ui';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from '@/components/ThemeProvider';
 import { Logo } from '@/components/Logo';
 import { migrationAPI } from '@/lib/api';
 import { useMigrationStore } from '@/store/migration';
@@ -278,6 +278,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onLogout }: DashboardProps) {
+  const { theme, setTheme } = useTheme();
   const [migrations, setMigrations] = useState<Migration[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -412,10 +413,6 @@ export function Dashboard({ onLogout }: DashboardProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
-              Back to Home
-            </Link>
-            <ThemeToggle />
             {onLogout && (
               <Button variant="ghost" size="sm" onClick={onLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -714,6 +711,38 @@ export function Dashboard({ onLogout }: DashboardProps) {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-[hsl(var(--border))] py-4 px-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Link to="/" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors">
+            ← Back to Home
+          </Link>
+          <div className="flex items-center gap-1 border border-[hsl(var(--border))] rounded-lg p-1">
+            <button
+              onClick={() => setTheme('light')}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'light' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setTheme('dark')}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'dark' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setTheme('system')}
+              className={`p-1.5 rounded-md transition-colors ${theme === 'system' ? 'bg-[hsl(var(--muted))] text-[hsl(var(--foreground))]' : 'text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))]'}`}
+              title="System theme"
+            >
+              <Monitor className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

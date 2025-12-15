@@ -47,7 +47,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       <div className="w-full max-w-md">
         <div className="mb-8">
           <div className="flex justify-center mb-4">
-            <Logo size="lg" />
+            <Logo size="lg" className="mx-auto" />
           </div>
           <p className="text-center text-[hsl(var(--muted-foreground))]">
             Sign in to access the migration dashboard
