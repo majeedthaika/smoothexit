@@ -180,66 +180,78 @@ export function TransformStep({ selectedMappings }: TransformStepProps) {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {Object.entries(transformedData).map(([targetKey, data]) => (
-              <div key={targetKey} className="border rounded-lg overflow-hidden">
-                <div className="flex items-center justify-between p-3 bg-[hsl(var(--muted))]">
-                  <div>
-                    <span className="font-medium">{targetKey}</span>
-                    <span className="text-sm text-[hsl(var(--muted-foreground))] ml-2">
-                      ({data.length.toLocaleString()} records)
-                    </span>
+            {Object.entries(transformedData).map(([targetKey, data]) => {
+              // Filter out columns where all values are null/undefined
+              const allColumns = data.length > 0 ? Object.keys(data[0]) : [];
+              const nonNullColumns = allColumns.filter(col =>
+                data.some(row => row[col] !== null && row[col] !== undefined && row[col] !== '')
+              );
+              const displayColumns = nonNullColumns.slice(0, 6);
+              const hiddenCount = nonNullColumns.length - displayColumns.length;
+
+              return (
+                <div key={targetKey} className="border rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between p-3 bg-[hsl(var(--muted))]">
+                    <div>
+                      <span className="font-medium">{targetKey}</span>
+                      <span className="text-sm text-[hsl(var(--muted-foreground))] ml-2">
+                        ({data.length.toLocaleString()} records)
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(targetKey)}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download CSV
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDownload(targetKey)}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download CSV
-                  </Button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-[hsl(var(--muted))]/50">
-                      <tr>
-                        {data.length > 0 &&
-                          Object.keys(data[0]).slice(0, 6).map((col) => (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-[hsl(var(--muted))]/50">
+                        <tr>
+                          {displayColumns.map((col) => (
                             <th key={col} className="px-3 py-2 text-left font-medium">
                               {col}
                             </th>
                           ))}
-                        {data.length > 0 && Object.keys(data[0]).length > 6 && (
-                          <th className="px-3 py-2 text-left font-medium text-[hsl(var(--muted-foreground))]">
-                            +{Object.keys(data[0]).length - 6} more
-                          </th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.slice(0, 5).map((row, rowIndex) => (
-                        <tr key={rowIndex} className="border-t">
-                          {Object.values(row).slice(0, 6).map((value, colIndex) => (
-                            <td key={colIndex} className="px-3 py-2 truncate max-w-[200px]">
-                              {value === null || value === undefined
-                                ? <span className="text-[hsl(var(--muted-foreground))]">null</span>
-                                : String(value)}
-                            </td>
-                          ))}
-                          {Object.keys(row).length > 6 && (
-                            <td className="px-3 py-2 text-[hsl(var(--muted-foreground))]">...</td>
+                          {hiddenCount > 0 && (
+                            <th className="px-3 py-2 text-left font-medium text-[hsl(var(--muted-foreground))]">
+                              +{hiddenCount} more
+                            </th>
                           )}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {data.length > 5 && (
-                    <div className="p-2 text-center text-sm text-[hsl(var(--muted-foreground))] border-t">
-                      Showing 5 of {data.length.toLocaleString()} records
-                    </div>
-                  )}
+                      </thead>
+                      <tbody>
+                        {data.slice(0, 5).map((row, rowIndex) => (
+                          <tr key={rowIndex} className="border-t">
+                            {displayColumns.map((col) => {
+                              const value = row[col];
+                              return (
+                                <td key={col} className="px-3 py-2 truncate max-w-[200px]">
+                                  {value === null || value === undefined
+                                    ? <span className="text-[hsl(var(--muted-foreground))]">null</span>
+                                    : String(value)}
+                                </td>
+                              );
+                            })}
+                            {hiddenCount > 0 && (
+                              <td className="px-3 py-2 text-[hsl(var(--muted-foreground))]">...</td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {data.length > 5 && (
+                      <div className="p-2 text-center text-sm text-[hsl(var(--muted-foreground))] border-t">
+                        Showing 5 of {data.length.toLocaleString()} records
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       )}

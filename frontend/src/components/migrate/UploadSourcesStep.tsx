@@ -343,7 +343,16 @@ export function UploadSourcesStep({ requiredSourceKeys }: UploadSourcesStepProps
                         <span>Preview Value</span>
                       </div>
 
-                      {uploaded.columns.map((col) => {
+                      {[...uploaded.columns]
+                        .sort((a, b) => {
+                          // Sort mapped columns first, unmapped columns at the bottom
+                          const aMapped = !!uploaded.columnMappings?.[a];
+                          const bMapped = !!uploaded.columnMappings?.[b];
+                          if (aMapped && !bMapped) return -1;
+                          if (!aMapped && bMapped) return 1;
+                          return 0;
+                        })
+                        .map((col) => {
                         const mappedField = uploaded.columnMappings?.[col] || '';
                         const previewValue = firstRow?.[col];
                         const displayValue = previewValue === null ? 'null' :
