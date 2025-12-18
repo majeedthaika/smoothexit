@@ -1,0 +1,951 @@
+{
+  "name": "Stripe + Salesforce to Chargebee Migration",
+  "version": "1.0",
+  "description": "Complete migration mapping from Stripe billing and Salesforce CRM to Chargebee",
+  "sources": ["Stripe", "Salesforce"],
+  "target": "Chargebee",
+  "migration_order": [
+    "ItemFamily",
+    "Item",
+    "ItemPrice",
+    "Customer",
+    "PaymentSource",
+    "Subscription",
+    "Invoice"
+  ],
+  "mappings": {
+    "Customer": {
+      "source": "Stripe.Customer",
+      "target": "Chargebee.Customer",
+      "description": "Map Stripe customers enriched with Salesforce contact/account data to Chargebee customers",
+      "additional_sources": [
+        {
+          "source": "Salesforce.Contact",
+          "join_type": "left",
+          "join_on": "email",
+          "match_fields": ["Stripe.Customer.email", "Salesforce.Contact.Email"]
+        },
+        {
+          "source": "Salesforce.Account",
+          "join_type": "left",
+          "join_on": "contact_account",
+          "match_fields": ["Salesforce.Contact.AccountId", "Salesforce.Account.Id"]
+        }
+      ],
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" },
+          "notes": "Prefix Stripe ID to avoid conflicts and maintain traceability"
+        },
+        {
+          "source": "Salesforce.Contact",
+          "source_field": "FirstName",
+          "target_field": "first_name",
+          "transform": "direct",
+          "notes": "Use Salesforce first name for better CRM data quality"
+        },
+        {
+          "source": "Salesforce.Contact",
+          "source_field": "LastName",
+          "target_field": "last_name",
+          "transform": "direct",
+          "notes": "Use Salesforce last name for better CRM data quality"
+        },
+        {
+          "source_field": "name",
+          "target_field": "first_name",
+          "transform": "split_name_first",
+          "transform_config": { "delimiter": " ", "index": 0 },
+          "notes": "Fallback: Extract first name from Stripe full name if Salesforce unavailable"
+        },
+        {
+          "source_field": "name",
+          "target_field": "last_name",
+          "transform": "split_name_last",
+          "transform_config": { "delimiter": " ", "index": -1 },
+          "notes": "Fallback: Extract last name from Stripe full name if Salesforce unavailable"
+        },
+        {
+          "source_field": "email",
+          "target_field": "email",
+          "transform": "direct",
+          "notes": "Direct email mapping"
+        },
+        {
+          "source_field": "phone",
+          "target_field": "phone",
+          "transform": "direct",
+          "notes": "Direct phone mapping"
+        },
+        {
+          "source": "Salesforce.Account",
+          "source_field": "Name",
+          "target_field": "company",
+          "transform": "direct",
+          "notes": "Company name from Salesforce Account"
+        },
+        {
+          "source": "Salesforce.Account",
+          "source_field": "Industry",
+          "target_field": "meta_data.industry",
+          "transform": "direct",
+          "notes": "Store industry in metadata"
+        },
+        {
+          "source": "Salesforce.Account",
+          "source_field": "AnnualRevenue",
+          "target_field": "meta_data.annual_revenue",
+          "transform": "direct",
+          "notes": "Store annual revenue in metadata for segmentation"
+        },
+        {
+          "source": "Salesforce.Account",
+          "source_field": "NumberOfEmployees",
+          "target_field": "meta_data.employee_count",
+          "transform": "direct",
+          "notes": "Store employee count in metadata"
+        },
+        {
+          "source_field": "address.line1",
+          "target_field": "billing_address.line1",
+          "transform": "direct"
+        },
+        {
+          "source_field": "address.line2",
+          "target_field": "billing_address.line2",
+          "transform": "direct"
+        },
+        {
+          "source_field": "address.city",
+          "target_field": "billing_address.city",
+          "transform": "direct"
+        },
+        {
+          "source_field": "address.state",
+          "target_field": "billing_address.state",
+          "transform": "direct"
+        },
+        {
+          "source_field": "address.postal_code",
+          "target_field": "billing_address.zip",
+          "transform": "direct"
+        },
+        {
+          "source_field": "address.country",
+          "target_field": "billing_address.country",
+          "transform": "iso_country_code",
+          "notes": "Convert to ISO 3166-1 alpha-2 code"
+        },
+        {
+          "source_field": "currency",
+          "target_field": "preferred_currency_code",
+          "transform": "uppercase",
+          "notes": "Ensure uppercase currency code"
+        },
+        {
+          "source_field": "balance",
+          "target_field": "promotional_credits",
+          "transform": "direct",
+          "notes": "Map Stripe balance to promotional credits (if positive)"
+        },
+        {
+          "source_field": "tax_exempt",
+          "target_field": "taxability",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "none": "taxable",
+              "exempt": "exempt",
+              "reverse": "exempt"
+            },
+            "default": "taxable"
+          }
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct",
+          "notes": "Unix timestamp - direct mapping"
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "merge_objects",
+          "notes": "Merge Stripe metadata with enriched Salesforce data"
+        },
+        {
+          "source_field": "id",
+          "target_field": "meta_data.stripe_customer_id",
+          "transform": "direct",
+          "notes": "Store original Stripe ID for reference"
+        },
+        {
+          "source": "Salesforce.Contact",
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_contact_id",
+          "transform": "direct",
+          "notes": "Store Salesforce Contact ID for reference"
+        },
+        {
+          "source": "Salesforce.Account",
+          "source_field": "Id",
+          "target_field": "meta_data.salesforce_account_id",
+          "transform": "direct",
+          "notes": "Store Salesforce Account ID for reference"
+        },
+        {
+          "source": "Salesforce.Contact",
+          "source_field": "Title",
+          "target_field": "meta_data.job_title",
+          "transform": "direct",
+          "notes": "Store job title in metadata"
+        },
+        {
+          "source": "Salesforce.Contact",
+          "source_field": "Department",
+          "target_field": "meta_data.department",
+          "transform": "direct",
+          "notes": "Store department in metadata"
+        },
+        {
+          "source": "Salesforce.Contact",
+          "source_field": "LeadSource",
+          "target_field": "meta_data.lead_source",
+          "transform": "direct",
+          "notes": "Store lead source for attribution"
+        }
+      ]
+    },
+    "Item": {
+      "source": "Stripe.Product",
+      "target": "Chargebee.Item",
+      "description": "Map Stripe products to Chargebee items (Product Catalog 2.0)",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" },
+          "notes": "Prefix to maintain traceability"
+        },
+        {
+          "source_field": "name",
+          "target_field": "name",
+          "transform": "truncate",
+          "transform_config": { "max_length": 50 },
+          "notes": "Chargebee name has 50 char limit"
+        },
+        {
+          "source_field": "name",
+          "target_field": "external_name",
+          "transform": "truncate",
+          "transform_config": { "max_length": 100 },
+          "notes": "Full name as external name"
+        },
+        {
+          "source_field": "description",
+          "target_field": "description",
+          "transform": "truncate",
+          "transform_config": { "max_length": 500 }
+        },
+        {
+          "source_field": "type",
+          "target_field": "type",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "service": "plan",
+              "good": "charge"
+            },
+            "default": "plan"
+          },
+          "notes": "Map Stripe product type to Chargebee item type"
+        },
+        {
+          "source_field": "active",
+          "target_field": "status",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "true": "active",
+              "false": "archived"
+            }
+          }
+        },
+        {
+          "source_field": null,
+          "target_field": "item_family_id",
+          "transform": "static",
+          "transform_config": { "value": "default-family" },
+          "notes": "Assign to default item family - update based on product categorization"
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "direct"
+        },
+        {
+          "source_field": "id",
+          "target_field": "meta_data.stripe_product_id",
+          "transform": "direct",
+          "notes": "Store original Stripe product ID"
+        },
+        {
+          "source_field": "images",
+          "target_field": "meta_data.images",
+          "transform": "direct",
+          "notes": "Store image URLs in metadata"
+        },
+        {
+          "source_field": "tax_code",
+          "target_field": "meta_data.tax_code",
+          "transform": "direct",
+          "notes": "Store Stripe tax code for reference"
+        }
+      ]
+    },
+    "ItemPrice": {
+      "source": "Stripe.Price",
+      "target": "Chargebee.ItemPrice",
+      "description": "Map Stripe prices to Chargebee item prices",
+      "additional_sources": [
+        {
+          "source": "Stripe.Product",
+          "join_type": "inner",
+          "join_on": "product_id",
+          "match_fields": ["Stripe.Price.product", "Stripe.Product.id"]
+        }
+      ],
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "nickname",
+          "target_field": "name",
+          "transform": "coalesce",
+          "transform_config": {
+            "fallback_field": "Stripe.Product.name",
+            "max_length": 50
+          },
+          "notes": "Use nickname if available, otherwise product name"
+        },
+        {
+          "source_field": "product",
+          "target_field": "item_id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" },
+          "notes": "Reference the migrated item ID"
+        },
+        {
+          "source_field": "type",
+          "target_field": "item_type",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "recurring": "plan",
+              "one_time": "charge"
+            }
+          }
+        },
+        {
+          "source_field": "unit_amount",
+          "target_field": "price",
+          "transform": "direct",
+          "notes": "Both use cents - direct mapping"
+        },
+        {
+          "source_field": "currency",
+          "target_field": "currency_code",
+          "transform": "uppercase"
+        },
+        {
+          "source_field": "billing_scheme",
+          "target_field": "pricing_model",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "per_unit": "per_unit",
+              "tiered": "tiered"
+            }
+          }
+        },
+        {
+          "source_field": "recurring.interval_count",
+          "target_field": "period",
+          "transform": "direct",
+          "notes": "Number of intervals"
+        },
+        {
+          "source_field": "recurring.interval",
+          "target_field": "period_unit",
+          "transform": "direct",
+          "notes": "day, week, month, year - same values"
+        },
+        {
+          "source_field": "recurring.trial_period_days",
+          "target_field": "trial_period",
+          "transform": "direct"
+        },
+        {
+          "source_field": null,
+          "target_field": "trial_period_unit",
+          "transform": "static",
+          "transform_config": { "value": "day" },
+          "notes": "Stripe trial is always in days"
+        },
+        {
+          "source_field": "tiers",
+          "target_field": "tiers",
+          "transform": "map_array",
+          "transform_config": {
+            "field_mappings": [
+              { "source": "up_to", "target": "ending_unit" },
+              { "source": "unit_amount", "target": "price" },
+              { "source": "flat_amount", "target": "price" }
+            ]
+          },
+          "notes": "Map tiered pricing structure"
+        },
+        {
+          "source_field": "tiers_mode",
+          "target_field": "pricing_model",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "graduated": "tiered",
+              "volume": "volume"
+            }
+          },
+          "notes": "Override pricing_model if tiered pricing is used"
+        },
+        {
+          "source_field": "active",
+          "target_field": "status",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "true": "active",
+              "false": "archived"
+            }
+          }
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct"
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "direct"
+        },
+        {
+          "source_field": "id",
+          "target_field": "meta_data.stripe_price_id",
+          "transform": "direct"
+        }
+      ]
+    },
+    "Subscription": {
+      "source": "Stripe.Subscription",
+      "target": "Chargebee.Subscription",
+      "description": "Map Stripe subscriptions to Chargebee subscriptions",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "customer",
+          "target_field": "customer_id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" },
+          "notes": "Reference migrated customer ID"
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "active": "active",
+              "trialing": "in_trial",
+              "past_due": "active",
+              "canceled": "cancelled",
+              "unpaid": "non_renewing",
+              "incomplete": "future",
+              "incomplete_expired": "cancelled",
+              "paused": "paused"
+            }
+          },
+          "notes": "Map Stripe status to Chargebee status"
+        },
+        {
+          "source_field": "current_period_start",
+          "target_field": "current_term_start",
+          "transform": "direct"
+        },
+        {
+          "source_field": "current_period_end",
+          "target_field": "current_term_end",
+          "transform": "direct"
+        },
+        {
+          "source_field": "current_period_end",
+          "target_field": "next_billing_at",
+          "transform": "direct",
+          "notes": "Next billing is at period end"
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct"
+        },
+        {
+          "source_field": "start_date",
+          "target_field": "started_at",
+          "transform": "direct"
+        },
+        {
+          "source_field": "canceled_at",
+          "target_field": "cancelled_at",
+          "transform": "direct"
+        },
+        {
+          "source_field": "trial_start",
+          "target_field": "trial_start",
+          "transform": "direct"
+        },
+        {
+          "source_field": "trial_end",
+          "target_field": "trial_end",
+          "transform": "direct"
+        },
+        {
+          "source_field": "currency",
+          "target_field": "currency_code",
+          "transform": "uppercase"
+        },
+        {
+          "source_field": "items.data",
+          "target_field": "subscription_items",
+          "transform": "map_array",
+          "transform_config": {
+            "field_mappings": [
+              {
+                "source": "price.id",
+                "target": "item_price_id",
+                "transform": "prefix",
+                "transform_config": { "prefix": "stripe_" }
+              },
+              { "source": "quantity", "target": "quantity" },
+              { "source": "price.unit_amount", "target": "unit_price" },
+              {
+                "source": "price.type",
+                "target": "item_type",
+                "transform": "value_map",
+                "transform_config": {
+                  "mapping": {
+                    "recurring": "plan",
+                    "one_time": "charge"
+                  }
+                }
+              }
+            ]
+          },
+          "notes": "Map subscription items with price references"
+        },
+        {
+          "source_field": "collection_method",
+          "target_field": "auto_collection",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "charge_automatically": "on",
+              "send_invoice": "off"
+            }
+          }
+        },
+        {
+          "source_field": "metadata",
+          "target_field": "meta_data",
+          "transform": "direct"
+        },
+        {
+          "source_field": "id",
+          "target_field": "meta_data.stripe_subscription_id",
+          "transform": "direct"
+        },
+        {
+          "source_field": "default_payment_method",
+          "target_field": "meta_data.stripe_payment_method_id",
+          "transform": "direct",
+          "notes": "Store for payment source linking"
+        },
+        {
+          "source_field": "billing_cycle_anchor",
+          "target_field": "meta_data.billing_cycle_anchor",
+          "transform": "direct"
+        },
+        {
+          "source_field": "cancel_at_period_end",
+          "target_field": "status",
+          "transform": "conditional",
+          "transform_config": {
+            "condition": "equals",
+            "value": true,
+            "then": "non_renewing",
+            "else": null
+          },
+          "notes": "Override status if subscription will cancel at period end"
+        }
+      ]
+    },
+    "Invoice": {
+      "source": "Stripe.Invoice",
+      "target": "Chargebee.Invoice",
+      "description": "Map Stripe invoices to Chargebee invoices",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "customer",
+          "target_field": "customer_id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "subscription",
+          "target_field": "subscription_id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "status",
+          "target_field": "status",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "draft": "pending",
+              "open": "payment_due",
+              "paid": "paid",
+              "uncollectible": "not_paid",
+              "void": "voided"
+            }
+          }
+        },
+        {
+          "source_field": "currency",
+          "target_field": "currency_code",
+          "transform": "uppercase"
+        },
+        {
+          "source_field": "total",
+          "target_field": "total",
+          "transform": "direct",
+          "notes": "Both in cents"
+        },
+        {
+          "source_field": "subtotal",
+          "target_field": "sub_total",
+          "transform": "direct"
+        },
+        {
+          "source_field": "amount_paid",
+          "target_field": "amount_paid",
+          "transform": "direct"
+        },
+        {
+          "source_field": "amount_due",
+          "target_field": "amount_due",
+          "transform": "direct"
+        },
+        {
+          "source_field": "created",
+          "target_field": "date",
+          "transform": "direct"
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct"
+        },
+        {
+          "source_field": "due_date",
+          "target_field": "due_date",
+          "transform": "direct"
+        },
+        {
+          "source_field": null,
+          "target_field": "price_type",
+          "transform": "static",
+          "transform_config": { "value": "tax_exclusive" },
+          "notes": "Stripe typically uses tax-exclusive pricing"
+        },
+        {
+          "source_field": "lines.data",
+          "target_field": "line_items",
+          "transform": "map_array",
+          "transform_config": {
+            "field_mappings": [
+              { "source": "id", "target": "id" },
+              { "source": "period.start", "target": "date_from" },
+              { "source": "period.end", "target": "date_to" },
+              { "source": "amount", "target": "amount" },
+              { "source": "quantity", "target": "quantity" },
+              { "source": "unit_amount", "target": "unit_amount" },
+              { "source": "description", "target": "description" },
+              {
+                "source": "price.id",
+                "target": "entity_id",
+                "transform": "prefix",
+                "transform_config": { "prefix": "stripe_" }
+              },
+              {
+                "source": "type",
+                "target": "entity_type",
+                "transform": "value_map",
+                "transform_config": {
+                  "mapping": {
+                    "subscription": "item_price",
+                    "invoiceitem": "item_price"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "source_field": "id",
+          "target_field": "meta_data.stripe_invoice_id",
+          "transform": "direct"
+        },
+        {
+          "source_field": "number",
+          "target_field": "meta_data.stripe_invoice_number",
+          "transform": "direct"
+        },
+        {
+          "source_field": "invoice_pdf",
+          "target_field": "meta_data.stripe_invoice_pdf",
+          "transform": "direct"
+        }
+      ]
+    },
+    "PaymentSource": {
+      "source": "Stripe.PaymentMethod",
+      "target": "Chargebee.PaymentSource",
+      "description": "Map Stripe payment methods to Chargebee payment sources",
+      "field_mappings": [
+        {
+          "source_field": "id",
+          "target_field": "id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "customer",
+          "target_field": "customer_id",
+          "transform": "prefix",
+          "transform_config": { "prefix": "stripe_" }
+        },
+        {
+          "source_field": "type",
+          "target_field": "type",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "card": "card",
+              "sepa_debit": "direct_debit",
+              "us_bank_account": "direct_debit",
+              "bank_account": "direct_debit"
+            },
+            "default": "card"
+          }
+        },
+        {
+          "source_field": null,
+          "target_field": "status",
+          "transform": "static",
+          "transform_config": { "value": "valid" },
+          "notes": "Assume valid - Stripe doesn't expose invalid methods"
+        },
+        {
+          "source_field": null,
+          "target_field": "gateway",
+          "transform": "static",
+          "transform_config": { "value": "stripe" },
+          "notes": "Set gateway to stripe for reference"
+        },
+        {
+          "source_field": "id",
+          "target_field": "reference_id",
+          "transform": "direct",
+          "notes": "Store Stripe payment method ID as reference"
+        },
+        {
+          "source_field": "card.brand",
+          "target_field": "card.brand",
+          "transform": "lowercase",
+          "notes": "Chargebee uses lowercase card brands"
+        },
+        {
+          "source_field": "card.last4",
+          "target_field": "card.last4",
+          "transform": "direct"
+        },
+        {
+          "source_field": "card.exp_month",
+          "target_field": "card.expiry_month",
+          "transform": "direct"
+        },
+        {
+          "source_field": "card.exp_year",
+          "target_field": "card.expiry_year",
+          "transform": "direct"
+        },
+        {
+          "source_field": "card.funding",
+          "target_field": "card.funding_type",
+          "transform": "value_map",
+          "transform_config": {
+            "mapping": {
+              "credit": "credit",
+              "debit": "debit",
+              "prepaid": "prepaid",
+              "unknown": "not_known"
+            }
+          }
+        },
+        {
+          "source_field": "billing_details.name",
+          "target_field": "card.first_name",
+          "transform": "split_name_first",
+          "transform_config": { "delimiter": " " }
+        },
+        {
+          "source_field": "billing_details.name",
+          "target_field": "card.last_name",
+          "transform": "split_name_last",
+          "transform_config": { "delimiter": " " }
+        },
+        {
+          "source_field": "created",
+          "target_field": "created_at",
+          "transform": "direct"
+        }
+      ]
+    },
+    "ItemFamily": {
+      "source": null,
+      "target": "Chargebee.ItemFamily",
+      "description": "Create default item family for migrated products",
+      "notes": "ItemFamily is required in Chargebee Product Catalog 2.0. Create a default family for all migrated items.",
+      "static_records": [
+        {
+          "id": "default-family",
+          "name": "Migrated Products",
+          "description": "Products migrated from Stripe",
+          "status": "active"
+        }
+      ]
+    }
+  },
+  "transforms": {
+    "prefix": {
+      "description": "Add a prefix to the value",
+      "parameters": ["prefix"]
+    },
+    "direct": {
+      "description": "Direct value mapping without transformation"
+    },
+    "value_map": {
+      "description": "Map source values to target values using a lookup table",
+      "parameters": ["mapping", "default"]
+    },
+    "truncate": {
+      "description": "Truncate string to maximum length",
+      "parameters": ["max_length"]
+    },
+    "uppercase": {
+      "description": "Convert string to uppercase"
+    },
+    "lowercase": {
+      "description": "Convert string to lowercase"
+    },
+    "split_name_first": {
+      "description": "Extract first name from full name",
+      "parameters": ["delimiter"]
+    },
+    "split_name_last": {
+      "description": "Extract last name from full name",
+      "parameters": ["delimiter"]
+    },
+    "static": {
+      "description": "Use a static value",
+      "parameters": ["value"]
+    },
+    "coalesce": {
+      "description": "Use first non-null value from multiple fields",
+      "parameters": ["fallback_field"]
+    },
+    "merge_objects": {
+      "description": "Merge multiple objects into one"
+    },
+    "map_array": {
+      "description": "Transform array items using field mappings",
+      "parameters": ["field_mappings"]
+    },
+    "conditional": {
+      "description": "Conditional transformation based on value",
+      "parameters": ["condition", "value", "then", "else"]
+    },
+    "iso_country_code": {
+      "description": "Convert country name to ISO 3166-1 alpha-2 code"
+    }
+  },
+  "validation_rules": [
+    {
+      "entity": "Customer",
+      "field": "email",
+      "rule": "required_if_no_company",
+      "message": "Customer must have either email or company name"
+    },
+    {
+      "entity": "Subscription",
+      "field": "customer_id",
+      "rule": "exists_in_target",
+      "target_entity": "Customer",
+      "message": "Customer must be migrated before subscription"
+    },
+    {
+      "entity": "ItemPrice",
+      "field": "item_id",
+      "rule": "exists_in_target",
+      "target_entity": "Item",
+      "message": "Item must be migrated before item price"
+    }
+  ],
+  "post_migration_notes": [
+    "Verify all customer balances are correctly migrated",
+    "Test subscription billing cycles match original dates",
+    "Validate payment methods are tokenized correctly in Chargebee gateway",
+    "Review any customers with multiple Salesforce contacts and consolidate if needed",
+    "Update webhook endpoints to point to Chargebee",
+    "Test invoice generation and email delivery",
+    "Verify tax calculations are consistent"
+  ]
+}
