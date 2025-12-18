@@ -132,12 +132,14 @@ interface MigrationWorkspaceState {
     data: Record<string, unknown>[];
     columns: string[];
     rowCount: number;
+    columnMappings?: Record<string, string>; // CSV column -> schema field
   }>;
   setUploadedSourceData: (key: string, data: {
     fileName: string;
     data: Record<string, unknown>[];
     columns: string[];
     rowCount: number;
+    columnMappings?: Record<string, string>;
   }) => void;
   clearUploadedSourceData: () => void;
 
