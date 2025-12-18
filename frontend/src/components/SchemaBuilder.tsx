@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Database, Search, Save, Loader2, RotateCcw, Hash } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Database, Search, Save, Loader2, RotateCcw, Hash, GitBranch } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Select } from '@/components/ui';
 import { DataInputModal } from '@/components/DataInputModal';
 import { SchemaRelationshipDiagram } from '@/components/SchemaRelationshipDiagram';
@@ -533,9 +533,6 @@ export function SchemaBuilder() {
         </div>
       </div>
 
-      {/* Entity Relationship Diagram */}
-      <SchemaRelationshipDiagram />
-
       {/* Quick Navigation */}
       {allServices.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
@@ -543,6 +540,13 @@ export function SchemaBuilder() {
             <Hash className="h-3.5 w-3.5" />
             Jump to:
           </span>
+          <button
+            onClick={() => scrollToSection('relationships')}
+            className="px-2.5 py-1 rounded-md text-sm font-medium transition-colors border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20 flex items-center gap-1"
+          >
+            <GitBranch className="h-3.5 w-3.5" />
+            Relationships
+          </button>
           {allServices.map(({ service, type, count }) => (
             <button
               key={`${type}-${service}`}
@@ -559,6 +563,11 @@ export function SchemaBuilder() {
           ))}
         </div>
       )}
+
+      {/* Entity Relationship Diagram */}
+      <div ref={(el) => { sectionRefs.current['relationships'] = el; }} className="scroll-mt-4">
+        <SchemaRelationshipDiagram />
+      </div>
 
       {/* Source Schemas */}
       <div ref={(el) => { sectionRefs.current['source-schemas'] = el; }} className="scroll-mt-4">
