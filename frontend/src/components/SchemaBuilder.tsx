@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Sparkles, Database, Search, Save, Loader2, RotateCcw, Hash } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, X, ChevronDown, ChevronRight, Upload, Database, Search, Save, Loader2, RotateCcw, Hash } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Select } from '@/components/ui';
 import { DataInputModal } from '@/components/DataInputModal';
 import { SchemaRelationshipDiagram } from '@/components/SchemaRelationshipDiagram';
@@ -532,43 +532,6 @@ export function SchemaBuilder() {
           </Button>
         </div>
       </div>
-
-      {/* Import Options Info */}
-      <Card className="bg-gradient-to-r from-[hsl(var(--primary))]/5 to-[hsl(var(--primary))]/10 border-[hsl(var(--primary))]/20">
-        <CardContent className="py-4">
-          <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-[hsl(var(--primary))] mt-0.5" />
-            <div>
-              <h3 className="font-medium mb-1">AI-Powered Schema Import</h3>
-              <p className="text-sm text-[hsl(var(--muted-foreground))] mb-3">
-                Import schemas from multiple sources with AI assistance:
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span>JSON/CSV files</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <span>API endpoints</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span>Screenshots</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                  <span>Web scraping</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-cyan-500"></div>
-                  <span>MCP servers</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Entity Relationship Diagram */}
       <SchemaRelationshipDiagram />
