@@ -96,19 +96,6 @@ const FEATURES = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote: "We migrated 50,000 customers from Stripe to Chargebee in a weekend. SmoothExit's mapping tools saved us weeks of development.",
-    author: "Sarah Chen",
-    role: "CTO, TechStartup Inc",
-  },
-  {
-    quote: "The multi-source join feature let us consolidate data from Salesforce and our legacy system in one migration.",
-    author: "Marcus Johnson",
-    role: "Head of Engineering, GrowthCo",
-  },
-];
-
 export function LandingPage() {
   const { theme, setTheme } = useTheme();
   const [formData, setFormData] = useState({
@@ -274,26 +261,6 @@ export function LandingPage() {
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Trusted by engineering teams</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {TESTIMONIALS.map((testimonial, index) => (
-              <Card key={index} className="bg-[hsl(var(--card))]">
-                <CardContent className="pt-6">
-                  <p className="text-lg mb-6 italic">"{testimonial.quote}"</p>
-                  <div>
-                    <p className="font-semibold">{testimonial.author}</p>
-                    <p className="text-sm text-[hsl(var(--muted-foreground))]">{testimonial.role}</p>
-                  </div>
-                </CardContent>
-              </Card>
             ))}
           </div>
         </div>
