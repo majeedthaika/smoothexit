@@ -9,7 +9,7 @@ const SERVICE_LOGOS: Record<string, { logo: string; type: 'svg' | 'favicon' }> =
   // Simple Icons (SVG)
   'Stripe': { logo: 'https://cdn.simpleicons.org/stripe', type: 'svg' },
   'Paddle': { logo: 'https://cdn.simpleicons.org/paddle', type: 'svg' },
-  'Salesforce': { logo: 'https://cdn.simpleicons.org/salesforce', type: 'svg' },
+  'Salesforce': { logo: 'https://www.google.com/s2/favicons?domain=salesforce.com&sz=64', type: 'favicon' },
   'HubSpot': { logo: 'https://cdn.simpleicons.org/hubspot', type: 'svg' },
   'Zoho': { logo: 'https://cdn.simpleicons.org/zoho', type: 'svg' },
   'Braintree': { logo: 'https://cdn.simpleicons.org/braintree', type: 'svg' },
