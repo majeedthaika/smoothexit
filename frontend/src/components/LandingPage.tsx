@@ -239,7 +239,7 @@ export function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 bg-[hsl(var(--muted))]/30">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">How it works</h2>
           <div className="space-y-8">
@@ -267,7 +267,7 @@ export function LandingPage() {
       </section>
 
       {/* Request Form */}
-      <section id="request-form" className="py-20 px-6 bg-[hsl(var(--muted))]/30">
+      <section id="request-form" className="py-20 px-6">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-4">Request a Migration</h2>
           <p className="text-center text-[hsl(var(--muted-foreground))] mb-8">
